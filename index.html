@@ -2382,63 +2382,82 @@ async function fetchLivePrices() {
   const symbols = toFetch.map(p => TD_SYMBOLS[p]).filter(Boolean).join(',');
   if (!symbols) return;
 
+  const showPriceError = (msg) => {
+    const mobile = document.getElementById('mobile-price-tiles');
+    if (mobile) mobile.innerHTML = `<div style="font-family:var(--font-mono);font-size:10px;color:#FF3D5A;">${msg}</div>`;
+    const liveDot = document.getElementById('price-live-dot');
+    if (liveDot) liveDot.style.display = 'none';
+  };
+
+  const makeTile = (pair, priceRaw) => {
+    if (!priceRaw) return '';
+    const price = parseFloat(priceRaw);
+    if (isNaN(price)) return '';
+    const lowDpPairs = ['BTCUSD','ETHUSD','SOLUSD','BNBUSD','ADAUSD','DOTUSD','LINKUSD','XRPUSD','US30','SPX500','NAS100','UK100','GER40','JPN225','AUS200','HK50','XAUUSD','XAGUSD','XPTUSD','XCUUSD','USOIL','UKOIL','NATGAS','COFFEE','COCOA','SUGAR','WHEAT','CORN','SOYBEAN','COTTON','LUMBER'];
+    const dp = lowDpPairs.includes(pair) ? 2 : 5;
+    const prev = prevPrices[pair];
+    const changed = prev !== undefined && price !== prev;
+    const up = price > prev;
+    const arrow = changed ? (up ? ' ▲' : ' ▼') : '';
+    const changeClass = changed ? (up ? 'price-up' : 'price-down') : '';
+    const flashClass = changed ? (up ? 'flash-up' : 'flash-down') : '';
+    prevPrices[pair] = price;
+    return `<div class="price-tile ${flashClass}" id="ptile-${pair}" style="min-width:100px;">
+      <div class="price-tile-pair">${pair}</div>
+      <div class="price-tile-val ${changeClass}">${price.toFixed(dp)}${arrow}</div>
+    </div>`;
+  };
+
+  const tdUrl = `https://api.twelvedata.com/price?symbol=${symbols}&apikey=${tdKey}`;
+
   try {
-    const res = await fetch(`https://api.twelvedata.com/price?symbol=${symbols}&apikey=${tdKey}`);
-    const data = await res.json();
-    const stamp = new Date().toLocaleTimeString();
+    let data;
+    try {
+      const res = await fetch(tdUrl);
+      data = await res.json();
+    } catch(corsErr) {
+      // CORS fallback via allorigins proxy
+      console.warn('Direct fetch failed, trying proxy:', corsErr.message);
+      const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(tdUrl)}`;
+      const res2 = await fetch(proxy);
+      data = await res2.json();
+    }
 
-    const makeTile = (pair, priceRaw) => {
-      if (!priceRaw) return '';
-      const price = parseFloat(priceRaw);
-      const lowDpPairs = ['BTCUSD','ETHUSD','SOLUSD','BNBUSD','ADAUSD','DOTUSD','LINKUSD','XRPUSD','US30','SPX500','NAS100','UK100','GER40','JPN225','AUS200','HK50','XAUUSD','XAGUSD','XPTUSD','XCUUSD','USOIL','UKOIL','NATGAS','COFFEE','COCOA','SUGAR','WHEAT','CORN','SOYBEAN','COTTON','LUMBER'];
-      const dp = lowDpPairs.includes(pair) ? 2 : 5;
-      const prev = prevPrices[pair];
-      const changed = prev !== undefined && price !== prev;
-      const up = price > prev;
-      const arrow = changed ? (up ? ' ▲' : ' ▼') : '';
-      const changeClass = changed ? (up ? 'price-up' : 'price-down') : '';
-      const flashClass = changed ? (up ? 'flash-up' : 'flash-down') : '';
-      prevPrices[pair] = price;
-      return `<div class="price-tile ${flashClass}" id="ptile-${pair}" style="min-width:100px;">
-        <div class="price-tile-pair">${pair}</div>
-        <div class="price-tile-val ${changeClass}">${price.toFixed(dp)}${arrow}</div>
-      </div>`;
-    };
+    // Surface API-level errors (bad key, invalid symbol, rate limit hit, etc.)
+    if (data.status === 'error') {
+      console.error('TwelveData API error:', data.message);
+      showPriceError(`TD error: ${data.message || 'check API key'}`);
+    } else {
+      const stamp = new Date().toLocaleTimeString();
+      const html = toFetch.map(p => {
+        const sym = TD_SYMBOLS[p];
+        const val = toFetch.length === 1 ? data.price : data[sym]?.price;
+        return makeTile(p, val);
+      }).filter(Boolean).join('');
 
-    // Build HTML — handle both single symbol (flat response) and multi-symbol responses
-    const html = toFetch.map(p => {
-      const sym = TD_SYMBOLS[p];
-      const val = toFetch.length === 1 ? data.price : data[sym]?.price;
-      return makeTile(p, val);
-    }).filter(Boolean).join('');
+      const mobile  = document.getElementById('mobile-price-tiles');
+      const mStamp  = document.getElementById('mobile-price-stamp');
+      const liveDot = document.getElementById('price-live-dot');
 
-    // Update containers
-    const mobile   = document.getElementById('mobile-price-tiles');
-    const mStamp   = document.getElementById('mobile-price-stamp');
-    const liveDot  = document.getElementById('price-live-dot');
+      if (mobile) mobile.innerHTML = html || mobile.innerHTML;
+      if (mStamp) mStamp.textContent = stamp;
+      if (liveDot) liveDot.style.display = 'block';
+      updateChartLivePrice(currentChartPair);
 
-    // topbar-prices removed — prices update mobile strip only
-    if (mobile) mobile.innerHTML = html || mobile.innerHTML;
-    if (mStamp) mStamp.textContent = stamp;
-    if (liveDot) liveDot.style.display = 'block';
-    // Refresh chart page live price
-    updateChartLivePrice(currentChartPair);
-
-    // Remove flash classes after 800ms
-    toFetch.forEach(p => {
-      const el = document.getElementById('ptile-' + p);
-      if (el) setTimeout(() => { el.classList.remove('flash-up','flash-down'); }, 800);
-    });
+      toFetch.forEach(p => {
+        const el = document.getElementById('ptile-' + p);
+        if (el) setTimeout(() => { el.classList.remove('flash-up','flash-down'); }, 800);
+      });
+    }
 
   } catch(e) {
-    console.warn('Price fetch failed:', e);
-    const mobile = document.getElementById('mobile-price-tiles');
-    if (mobile) mobile.innerHTML = `<div style="font-family:var(--font-mono);font-size:10px;color:#FF3D5A;">Price fetch error — check console</div>`;
+    console.warn('Price fetch failed:', e.message);
+    showPriceError('Price fetch failed — open DevTools (F12) for details');
   }
 
-  // Schedule next refresh in 5 seconds
+  // 15s refresh — stays within TwelveData free tier (8 req/min)
   clearTimeout(priceRefreshTimer);
-  priceRefreshTimer = setTimeout(fetchLivePrices, 5000);
+  priceRefreshTimer = setTimeout(fetchLivePrices, 15000);
 }
 
 async function fetchCandles(symbol, interval, outputsize) {
