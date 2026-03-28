@@ -1,1 +1,1437 @@
+<!DOCTYPE html>
 
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Wingman">
+<title>Wingman · AI Trading Analyst</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #F0B429;
+    --gold-dim: #F0B42933;
+    --gold-glow: #F0B42920;
+    --green: #00E87A;
+    --green-dim: #00E87A33;
+    --red: #FF3D5A;
+    --red-dim: #FF3D5A33;
+    --blue: #00C8FF;
+    --bg: #060608;
+    --bg1: #0C0C10;
+    --bg2: #111116;
+    --bg3: #17171E;
+    --border: #1E1E28;
+    --border2: #252530;
+    --text: #E8E8F0;
+    --text2: #9090A8;
+    --text3: #505060;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'Instrument Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+- { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+width: 100%; height: 100%; overflow: hidden;
+background: var(–bg); color: var(–text);
+font-family: var(–font-body); font-size: 14px;
+-webkit-font-smoothing: antialiased;
+}
+
+#app {
+width: 100%; height: 100%;
+display: flex; flex-direction: column;
+max-width: 480px; margin: 0 auto;
+position: relative; overflow: hidden;
+}
+
+/* ── SCREENS ── */
+.screen {
+position: absolute; inset: 0;
+display: flex; flex-direction: column;
+opacity: 0; pointer-events: none;
+transform: translateX(30px);
+transition: opacity 0.3s ease, transform 0.3s ease;
+overflow: hidden;
+}
+.screen.active {
+opacity: 1; pointer-events: all; transform: translateX(0);
+}
+
+/* ── SCROLLABLE CONTENT ── */
+.scroll-area {
+flex: 1; overflow-y: auto; overflow-x: hidden;
+-webkit-overflow-scrolling: touch;
+padding: 16px 16px 100px;
+}
+.scroll-area::-webkit-scrollbar { display: none; }
+
+/* ── TOP NAV ── */
+.topbar {
+padding: 52px 20px 14px;
+background: var(–bg);
+border-bottom: 1px solid var(–border);
+flex-shrink: 0;
+position: relative;
+z-index: 10;
+}
+.topbar-row {
+display: flex; align-items: center; justify-content: space-between;
+}
+.app-logo {
+display: flex; align-items: center; gap: 10px;
+}
+.logo-icon {
+width: 36px; height: 36px; border-radius: 10px;
+background: linear-gradient(135deg, var(–gold), #FF6B00);
+display: flex; align-items: center; justify-content: center;
+font-size: 18px; flex-shrink: 0;
+box-shadow: 0 4px 16px #F0B42930;
+}
+.logo-text { font-family: var(–font-display); font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+.logo-sub { font-family: var(–font-mono); font-size: 8px; color: var(–text3); letter-spacing: 2px; margin-top: 1px; }
+
+/* ── BOTTOM NAV ── */
+.bottomnav {
+position: absolute; bottom: 0; left: 0; right: 0;
+background: var(–bg1);
+border-top: 1px solid var(–border);
+display: flex;
+padding-bottom: var(–safe-bottom);
+z-index: 100;
+}
+.nav-item {
+flex: 1; display: flex; flex-direction: column;
+align-items: center; justify-content: center;
+padding: 10px 0; cursor: pointer;
+transition: all 0.2s;
+border: none; background: none; color: var(–text3);
+font-family: var(–font-mono); font-size: 9px; letter-spacing: 0.5px;
+gap: 4px;
+}
+.nav-item.active { color: var(–gold); }
+.nav-icon { font-size: 18px; line-height: 1; }
+
+/* ── CARDS ── */
+.card {
+background: var(–bg1); border: 1px solid var(–border);
+border-radius: var(–radius); padding: 16px;
+margin-bottom: 12px;
+}
+.card-label {
+font-family: var(–font-mono); font-size: 8px;
+color: var(–text3); letter-spacing: 2px;
+margin-bottom: 12px; text-transform: uppercase;
+}
+
+/* ── INPUTS ── */
+.input-field {
+width: 100%; background: var(–bg2);
+border: 1px solid var(–border2); border-radius: var(–radius-sm);
+padding: 11px 13px; color: var(–text);
+font-family: var(–font-mono); font-size: 14px;
+transition: border-color 0.2s; outline: none;
+}
+.input-field:focus { border-color: var(–gold); }
+.input-field::placeholder { color: var(–text3); }
+.input-label {
+font-family: var(–font-mono); font-size: 9px;
+color: var(–text3); letter-spacing: 1px;
+margin-bottom: 6px; display: block;
+}
+
+/* ── BUTTONS ── */
+.btn-primary {
+width: 100%; padding: 15px;
+background: linear-gradient(135deg, var(–gold), #FF8C00);
+border: none; border-radius: var(–radius-sm);
+color: #000; font-family: var(–font-display);
+font-size: 15px; font-weight: 700;
+cursor: pointer; letter-spacing: 0.3px;
+display: flex; align-items: center; justify-content: center; gap: 8px;
+box-shadow: 0 4px 24px #F0B42930;
+transition: opacity 0.2s, transform 0.15s;
+}
+.btn-primary:active { opacity: 0.85; transform: scale(0.98); }
+.btn-primary:disabled { background: var(–bg3); color: var(–text3); box-shadow: none; cursor: not-allowed; }
+
+.btn-outline {
+padding: 9px 16px;
+background: transparent;
+border: 1px solid var(–border2); border-radius: var(–radius-sm);
+color: var(–text2); font-family: var(–font-mono);
+font-size: 11px; cursor: pointer;
+transition: all 0.2s;
+}
+.btn-outline:active { border-color: var(–gold); color: var(–gold); }
+
+/* ── PAIR CHIPS ── */
+.pair-chip {
+padding: 7px 13px;
+background: var(–bg2); border: 1px solid var(–border2);
+border-radius: 8px; color: var(–text3);
+font-family: var(–font-mono); font-size: 12px;
+cursor: pointer; transition: all 0.15s;
+user-select: none;
+}
+.pair-chip.selected {
+background: var(–gold-glow); border-color: var(–gold);
+color: var(–gold); font-weight: 700;
+}
+
+/* ── BADGES ── */
+.badge {
+font-family: var(–font-mono); font-size: 8px;
+letter-spacing: 1px; padding: 3px 8px;
+border-radius: 5px; font-weight: 700;
+}
+.badge-high { background: var(–red-dim); color: var(–red); }
+.badge-medium { background: #F0B42922; color: var(–gold); }
+.badge-low { background: var(–bg3); color: var(–text3); }
+.badge-buy { background: var(–green-dim); color: var(–green); }
+.badge-sell { background: var(–red-dim); color: var(–red); }
+.badge-bull { background: var(–green-dim); color: var(–green); }
+.badge-bear { background: var(–red-dim); color: var(–red); }
+.badge-neutral { background: #F0B42922; color: var(–gold); }
+
+/* ── TREND ROW ── */
+.trend-row {
+display: flex; gap: 8px; margin-bottom: 12px;
+}
+.trend-cell {
+flex: 1; background: var(–bg2);
+border-radius: var(–radius-sm); padding: 8px;
+text-align: center; border: 1px solid var(–border);
+}
+.trend-tf { font-family: var(–font-mono); font-size: 8px; color: var(–text3); letter-spacing: 1px; margin-bottom: 3px; }
+.trend-val { font-family: var(–font-display); font-size: 11px; font-weight: 700; }
+
+/* ── SETUP CARD ── */
+.setup-card {
+border-radius: var(–radius); padding: 16px;
+margin-bottom: 10px; border: 1px solid;
+}
+.setup-grid {
+display: grid; grid-template-columns: 1fr 1fr 1fr;
+gap: 6px; margin: 10px 0;
+}
+.setup-cell {
+background: var(–bg2); border-radius: 8px; padding: 7px 8px;
+}
+.setup-cell-label { font-family: var(–font-mono); font-size: 7px; color: var(–text3); letter-spacing: 1px; margin-bottom: 2px; }
+.setup-cell-val { font-family: var(–font-mono); font-size: 12px; font-weight: 700; }
+
+/* ── VERDICT BANNER ── */
+.verdict-banner {
+border-radius: var(–radius-sm); padding: 14px 16px;
+margin-bottom: 12px; border: 1px solid;
+display: flex; justify-content: space-between; align-items: center;
+}
+
+/* ── SPINNER ── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+width: 16px; height: 16px;
+border: 2px solid #00000033;
+border-top-color: #000;
+border-radius: 50%;
+animation: spin 0.7s linear infinite;
+flex-shrink: 0;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+from { opacity: 0; transform: translateY(12px); }
+to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.4s ease forwards; }
+.fade-up-delay-1 { animation: fadeUp 0.4s ease 0.08s both; }
+.fade-up-delay-2 { animation: fadeUp 0.4s ease 0.16s both; }
+.fade-up-delay-3 { animation: fadeUp 0.4s ease 0.24s both; }
+
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+.pulse { animation: pulse 1.5s ease-in-out infinite; }
+
+/* ── NEWS ITEM ── */
+.news-item {
+background: var(–bg2); border-radius: var(–radius-sm);
+padding: 10px 12px; margin-bottom: 8px;
+border-left: 3px solid;
+}
+
+/* ── JOURNAL ENTRY ── */
+.journal-entry {
+background: var(–bg2); border-radius: var(–radius-sm);
+padding: 12px; margin-bottom: 8px;
+border: 1px solid var(–border);
+}
+.journal-entry.win { border-left: 3px solid var(–green); }
+.journal-entry.loss { border-left: 3px solid var(–red); }
+.journal-entry.be { border-left: 3px solid var(–gold); }
+
+/* ── RISK CALC DISPLAY ── */
+.calc-display {
+background: var(–bg2); border-radius: var(–radius-sm);
+padding: 12px; text-align: center;
+border: 1px solid var(–border2);
+}
+.calc-display-val {
+font-family: var(–font-display);
+font-size: 28px; font-weight: 800;
+color: var(–gold);
+}
+.calc-display-label {
+font-family: var(–font-mono); font-size: 9px;
+color: var(–text3); letter-spacing: 2px; margin-top: 3px;
+}
+
+/* ── DIVIDER ── */
+.divider { height: 1px; background: var(–border); margin: 14px 0; }
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align: center; padding: 50px 20px; }
+.empty-icon { font-size: 40px; opacity: 0.15; margin-bottom: 12px; }
+.empty-text { color: var(–text3); font-size: 13px; }
+.empty-sub { color: var(–text3); font-size: 11px; margin-top: 4px; opacity: 0.6; }
+
+/* ── TOAST ── */
+#toast {
+position: fixed; bottom: 90px; left: 50%;
+transform: translateX(-50%) translateY(20px);
+background: var(–bg3); border: 1px solid var(–border2);
+border-radius: 24px; padding: 10px 20px;
+font-size: 13px; color: var(–text);
+opacity: 0; transition: all 0.3s; z-index: 999;
+white-space: nowrap; pointer-events: none;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── API KEY SCREEN ── */
+.api-hero {
+text-align: center; padding: 30px 0 20px;
+}
+.api-hero-icon {
+width: 64px; height: 64px; border-radius: 18px;
+background: linear-gradient(135deg, var(–gold), #FF6B00);
+display: flex; align-items: center; justify-content: center;
+font-size: 30px; margin: 0 auto 16px;
+box-shadow: 0 8px 32px #F0B42930;
+}
+.api-hero h1 {
+font-family: var(–font-display); font-size: 26px;
+font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px;
+}
+.api-hero p { color: var(–text2); font-size: 13px; line-height: 1.6; }
+
+.step-item {
+display: flex; gap: 12px; align-items: flex-start;
+margin-bottom: 14px;
+}
+.step-num {
+width: 24px; height: 24px; border-radius: 50%;
+background: var(–gold-dim); border: 1px solid var(–gold);
+display: flex; align-items: center; justify-content: center;
+font-family: var(–font-mono); font-size: 10px;
+color: var(–gold); flex-shrink: 0; margin-top: 1px;
+}
+.step-text { font-size: 13px; color: var(–text2); line-height: 1.5; }
+.step-text strong { color: var(–text); }
+
+.key-input-wrap { position: relative; }
+.key-toggle {
+position: absolute; right: 12px; top: 50%;
+transform: translateY(-50%);
+background: none; border: none;
+color: var(–text3); cursor: pointer;
+font-size: 16px; padding: 4px;
+}
+
+/* ── STAT BOXES ── */
+.stat-grid {
+display: grid; grid-template-columns: 1fr 1fr;
+gap: 8px; margin-bottom: 12px;
+}
+.stat-box {
+background: var(–bg2); border-radius: var(–radius-sm);
+padding: 12px; border: 1px solid var(–border);
+}
+.stat-box-val {
+font-family: var(–font-display); font-size: 22px; font-weight: 800;
+}
+.stat-box-label {
+font-family: var(–font-mono); font-size: 8px;
+color: var(–text3); letter-spacing: 1px; margin-top: 3px;
+}
+
+/* ── RULE ITEM ── */
+.rule-item {
+display: flex; gap: 10px; align-items: flex-start;
+padding: 10px 0; border-bottom: 1px solid var(–border);
+}
+.rule-item:last-child { border-bottom: none; }
+.rule-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.rule-text { font-size: 13px; color: var(–text2); line-height: 1.5; }
+
+/* link */
+a { color: var(–gold); text-decoration: none; }
+</style>
+
+</head>
+<body>
+<div id="app">
+
+  <!-- ══════════════════════════════════
+       SCREEN: SETUP (API KEY)
+  ══════════════════════════════════ -->
+
+  <div class="screen active" id="screen-setup">
+    <div class="scroll-area" style="padding-top: 60px;">
+      <div class="api-hero fade-up">
+        <div class="api-hero-icon">⚡</div>
+        <h1>Wingman</h1>
+        <p>Your AI trading analyst for XAUUSD,<br>Bitcoin & more. One API key to start.</p>
+      </div>
+
+```
+  <div class="card fade-up-delay-1">
+    <div class="card-label">How to get your free API key</div>
+    <div class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-text">Go to <strong><a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></strong> on your phone browser</div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-text">Create a free account or sign in</div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-text">Go to <strong>API Keys</strong> → click <strong>Create Key</strong></div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-text">Add a small credit (a few dollars lasts months — each scan costs fractions of a cent)</div>
+    </div>
+    <div class="step-item" style="margin-bottom:0">
+      <div class="step-num">5</div>
+      <div class="step-text">Copy the key and paste it below</div>
+    </div>
+  </div>
+
+  <div class="card fade-up-delay-2">
+    <div class="card-label">Your API Key</div>
+    <div class="key-input-wrap" style="margin-bottom:12px">
+      <input type="password" class="input-field" id="api-key-input"
+        placeholder="sk-ant-api03-..." autocomplete="off" spellcheck="false">
+      <button class="key-toggle" onclick="toggleKeyVisibility()" id="key-toggle-btn">👁</button>
+    </div>
+    <button class="btn-primary" onclick="saveApiKey()">
+      Save & Enter Wingman
+    </button>
+    <p style="font-size:11px; color:var(--text3); text-align:center; margin-top:10px; line-height:1.5;">
+      Your key is saved only on this device in your browser.<br>Never shared anywhere.
+    </p>
+  </div>
+
+  <div class="card fade-up-delay-3">
+    <div class="card-label">What Wingman does</div>
+    <div class="rule-item">
+      <div class="rule-icon">📡</div>
+      <div class="rule-text"><strong>Market Scan</strong> — AI analysis of XAUUSD, BTC, forex with trend bias, key levels, and trade setups</div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-icon">🎯</div>
+      <div class="rule-text"><strong>Lot Size Calculator</strong> — precise lot sizing based on your balance and risk %</div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-icon">📓</div>
+      <div class="rule-text"><strong>Trade Journal</strong> — log your trades and track your stats over time</div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-icon">🧠</div>
+      <div class="rule-text"><strong>Trading Rules</strong> — your personal rulebook to check before every trade</div>
+    </div>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- ══════════════════════════════════
+       SCREEN: SCAN
+  ══════════════════════════════════ -->
+
+  <div class="screen" id="screen-scan">
+    <div class="topbar">
+      <div class="topbar-row">
+        <div class="app-logo">
+          <div class="logo-icon">⚡</div>
+          <div>
+            <div class="logo-text">Wingman</div>
+            <div class="logo-sub">AI TRADING ANALYST</div>
+          </div>
+        </div>
+        <div id="scan-time" style="font-family:var(--font-mono);font-size:9px;color:var(--text3);text-align:right;"></div>
+      </div>
+    </div>
+
+```
+<div class="scroll-area">
+  <!-- Account Config -->
+  <div class="card">
+    <div class="card-label">Account</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+      <div>
+        <label class="input-label">BALANCE ($)</label>
+        <input type="number" class="input-field" id="balance-input" value="84.76" style="color:var(--green)">
+      </div>
+      <div>
+        <label class="input-label">RISK (%)</label>
+        <input type="number" class="input-field" id="risk-input" value="1" style="color:var(--gold)" step="0.5">
+      </div>
+    </div>
+    <div style="background:var(--bg2);border-radius:8px;padding:8px 11px;font-family:var(--font-mono);font-size:11px;color:var(--text3);display:flex;justify-content:space-between;align-items:center;">
+      <span>Max risk per trade</span>
+      <span id="risk-display" style="color:var(--gold);font-weight:700;">$0.85</span>
+    </div>
+  </div>
+
+  <!-- Pair Selector -->
+  <div class="card">
+    <div class="card-label">Select Pairs</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;" id="pair-selector">
+      <div class="pair-chip selected" data-pair="XAUUSD" onclick="togglePair(this)">XAUUSD</div>
+      <div class="pair-chip" data-pair="BTCUSD" onclick="togglePair(this)">BTCUSD</div>
+      <div class="pair-chip" data-pair="EURUSD" onclick="togglePair(this)">EURUSD</div>
+      <div class="pair-chip" data-pair="GBPUSD" onclick="togglePair(this)">GBPUSD</div>
+      <div class="pair-chip" data-pair="US30" onclick="togglePair(this)">US30</div>
+      <div class="pair-chip" data-pair="GBPJPY" onclick="togglePair(this)">GBPJPY</div>
+    </div>
+  </div>
+
+  <!-- Scan Button -->
+  <button class="btn-primary" id="scan-btn" onclick="runScan()" style="margin-bottom:14px;">
+    ⚡ Run Market Scan
+  </button>
+
+  <!-- Error -->
+  <div id="scan-error" style="display:none;background:var(--red-dim);border:1px solid var(--red);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:12px;font-size:13px;color:#ff8888;"></div>
+
+  <!-- Results Container -->
+  <div id="scan-results"></div>
+
+  <!-- Empty State -->
+  <div id="scan-empty" class="empty-state">
+    <div class="empty-icon">📡</div>
+    <div class="empty-text">Ready to scan</div>
+    <div class="empty-sub">Configure your account above and hit Run</div>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- ══════════════════════════════════
+       SCREEN: CALCULATOR
+  ══════════════════════════════════ -->
+
+  <div class="screen" id="screen-calc">
+    <div class="topbar">
+      <div class="topbar-row">
+        <div>
+          <div style="font-family:var(--font-display);font-size:18px;font-weight:800;">Risk Calculator</div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1.5px;">LOT SIZE & POSITION SIZING</div>
+        </div>
+      </div>
+    </div>
+
+```
+<div class="scroll-area">
+  <div class="card">
+    <div class="card-label">Account Details</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <div>
+        <label class="input-label">BALANCE ($)</label>
+        <input type="number" class="input-field" id="calc-balance" value="84.76" oninput="calcLotSize()" style="color:var(--green)">
+      </div>
+      <div>
+        <label class="input-label">RISK (%)</label>
+        <input type="number" class="input-field" id="calc-risk" value="1" oninput="calcLotSize()" step="0.5" style="color:var(--gold)">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Trade Setup</div>
+    <div style="margin-bottom:8px;">
+      <label class="input-label">INSTRUMENT</label>
+      <select class="input-field" id="calc-instrument" onchange="calcLotSize()">
+        <option value="XAUUSD">XAUUSD (Gold)</option>
+        <option value="BTCUSD">BTCUSD (Bitcoin)</option>
+        <option value="EURUSD">EURUSD</option>
+        <option value="GBPUSD">GBPUSD</option>
+        <option value="GBPJPY">GBPJPY</option>
+        <option value="US30">US30 (Dow Jones)</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div>
+        <label class="input-label">ENTRY PRICE</label>
+        <input type="number" class="input-field" id="calc-entry" placeholder="3080.00" oninput="calcLotSize()" step="0.01">
+      </div>
+      <div>
+        <label class="input-label">STOP LOSS</label>
+        <input type="number" class="input-field" id="calc-sl" placeholder="3060.00" oninput="calcLotSize()" step="0.01">
+      </div>
+    </div>
+  </div>
+
+  <!-- Result Display -->
+  <div class="calc-display" style="margin-bottom:12px;">
+    <div class="calc-display-val" id="calc-lot-result">—</div>
+    <div class="calc-display-label">RECOMMENDED LOT SIZE</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+    <div class="stat-box">
+      <div class="stat-box-val" id="calc-risk-usd" style="color:var(--red);font-size:18px;">—</div>
+      <div class="stat-box-label">RISK ($)</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-box-val" id="calc-sl-pips" style="color:var(--text2);font-size:18px;">—</div>
+      <div class="stat-box-label">SL DISTANCE</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-box-val" id="calc-pip-val" style="color:var(--blue);font-size:18px;">—</div>
+      <div class="stat-box-label">PIP VALUE</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Martingale Warning</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.6;">
+      Based on your history, you've been doubling lot sizes after losses. At <span style="color:var(--red);font-weight:600;">$84 balance</span>, the safe maximum is <span style="color:var(--green);font-weight:600;">0.01 lots</span> per trade. Never exceed this until your balance exceeds $500.
+    </div>
+  </div>
+
+  <!-- Quick Lot Reference -->
+  <div class="card">
+    <div class="card-label">Quick Lot Reference (XAUUSD)</div>
+    <div id="lot-table"></div>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- ══════════════════════════════════
+       SCREEN: JOURNAL
+  ══════════════════════════════════ -->
+
+  <div class="screen" id="screen-journal">
+    <div class="topbar">
+      <div class="topbar-row">
+        <div>
+          <div style="font-family:var(--font-display);font-size:18px;font-weight:800;">Trade Journal</div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1.5px;">LOG · REVIEW · IMPROVE</div>
+        </div>
+        <button class="btn-outline" onclick="showAddTrade()">+ Log Trade</button>
+      </div>
+    </div>
+
+```
+<div class="scroll-area">
+  <!-- Stats Row -->
+  <div class="stat-grid" id="journal-stats">
+    <div class="stat-box">
+      <div class="stat-box-val" id="stat-total" style="color:var(--text);">0</div>
+      <div class="stat-box-label">TOTAL TRADES</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-box-val" id="stat-winrate" style="color:var(--green);">0%</div>
+      <div class="stat-box-label">WIN RATE</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-box-val" id="stat-pnl" style="color:var(--green);">$0</div>
+      <div class="stat-box-label">TOTAL P&L</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-box-val" id="stat-avg-rr" style="color:var(--blue);">0</div>
+      <div class="stat-box-label">AVG R:R</div>
+    </div>
+  </div>
+
+  <!-- Add Trade Form (hidden by default) -->
+  <div id="add-trade-form" style="display:none;" class="card">
+    <div class="card-label">Log New Trade</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <div>
+        <label class="input-label">PAIR</label>
+        <select class="input-field" id="j-pair">
+          <option>XAUUSD</option><option>BTCUSD</option>
+          <option>EURUSD</option><option>GBPUSD</option><option>GBPJPY</option><option>US30</option>
+        </select>
+      </div>
+      <div>
+        <label class="input-label">DIRECTION</label>
+        <select class="input-field" id="j-dir">
+          <option>BUY</option><option>SELL</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <div>
+        <label class="input-label">LOT SIZE</label>
+        <input type="number" class="input-field" id="j-lot" placeholder="0.01" step="0.01">
+      </div>
+      <div>
+        <label class="input-label">RESULT ($)</label>
+        <input type="number" class="input-field" id="j-pnl" placeholder="+5.50">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <div>
+        <label class="input-label">ENTRY</label>
+        <input type="number" class="input-field" id="j-entry" placeholder="3080" step="0.01">
+      </div>
+      <div>
+        <label class="input-label">EXIT</label>
+        <input type="number" class="input-field" id="j-exit" placeholder="3095" step="0.01">
+      </div>
+    </div>
+    <div style="margin-bottom:10px;">
+      <label class="input-label">NOTES (optional)</label>
+      <input type="text" class="input-field" id="j-notes" placeholder="What went well or wrong...">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <button class="btn-outline" onclick="hideAddTrade()">Cancel</button>
+      <button class="btn-primary" onclick="saveTrade()" style="padding:11px;">Save Trade</button>
+    </div>
+  </div>
+
+  <!-- Trade List -->
+  <div id="trade-list"></div>
+
+  <div id="journal-empty" class="empty-state">
+    <div class="empty-icon">📓</div>
+    <div class="empty-text">No trades logged yet</div>
+    <div class="empty-sub">Tap + Log Trade to start tracking</div>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- ══════════════════════════════════
+       SCREEN: RULES & SETTINGS
+  ══════════════════════════════════ -->
+
+  <div class="screen" id="screen-rules">
+    <div class="topbar">
+      <div class="topbar-row">
+        <div>
+          <div style="font-family:var(--font-display);font-size:18px;font-weight:800;">Rules & Settings</div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1.5px;">YOUR TRADING CONSTITUTION</div>
+        </div>
+      </div>
+    </div>
+
+```
+<div class="scroll-area">
+  <!-- Pre-trade checklist -->
+  <div class="card">
+    <div class="card-label">Pre-Trade Checklist</div>
+    <div id="checklist-items"></div>
+    <div style="margin-top:12px;display:flex;gap:8px;">
+      <button class="btn-outline" onclick="resetChecklist()" style="flex:1;">Reset</button>
+      <button class="btn-primary" onclick="checkAllTrade()" style="flex:2;padding:11px;">All Clear — Trade</button>
+    </div>
+  </div>
+
+  <!-- Core Rules -->
+  <div class="card">
+    <div class="card-label">Core Trading Rules</div>
+    <div class="rule-item">
+      <div class="rule-icon">🚫</div>
+      <div class="rule-text"><strong>No martingale.</strong> Never increase lot size after a loss. Fixed size only.</div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-icon">📊</div>
+      <div class="rule-text"><strong>Trade with the daily trend.</strong> Avoid counter-trend entries unless the setup is exceptional.</div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-icon">🔢</div>
+      <div class="rule-text"><strong>Maximum 2 open trades at once.</strong> One trade at a time until profitable for 30 days.</div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-icon">💸</div>
+      <div class="rule-text"><strong>Daily loss limit: 5% of balance.</strong> If hit, close platform. No revenge trading.</div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-icon">⏰</div>
+      <div class="rule-text"><strong>Avoid major news.</strong> No entries 30 min before/after HIGH impact events.</div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-icon">🎯</div>
+      <div class="rule-text"><strong>Minimum 1:2 risk/reward.</strong> If TP1 is less than 2× SL distance, don't take the trade.</div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-icon">⚡</div>
+      <div class="rule-text"><strong>At $84 balance — 0.01 lots only.</strong> No exceptions until balance exceeds $300.</div>
+    </div>
+  </div>
+
+  <!-- Daily Loss Tracker -->
+  <div class="card">
+    <div class="card-label">Daily Loss Tracker</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+      <div>
+        <label class="input-label">TODAY'S P&L ($)</label>
+        <input type="number" class="input-field" id="daily-pnl" placeholder="0.00" oninput="updateDailyLimit()">
+      </div>
+      <div>
+        <label class="input-label">ACCOUNT BALANCE ($)</label>
+        <input type="number" class="input-field" id="daily-balance" placeholder="84.76" oninput="updateDailyLimit()">
+      </div>
+    </div>
+    <div id="daily-limit-display" class="calc-display">
+      <div class="calc-display-val" style="font-size:20px;">Enter values above</div>
+      <div class="calc-display-label">DAILY LIMIT STATUS</div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="card">
+    <div class="card-label">Settings</div>
+    <div style="margin-bottom:10px;">
+      <label class="input-label">API KEY</label>
+      <div style="display:flex;gap:8px;">
+        <input type="password" class="input-field" id="settings-key" placeholder="sk-ant-api03-..." style="flex:1;" autocomplete="off">
+        <button class="btn-outline" onclick="updateApiKey()">Save</button>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <button class="btn-outline" onclick="clearAllData()" style="width:100%;color:var(--red);border-color:var(--red-dim);">Clear All Data</button>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- ══════════════════════════════════
+       BOTTOM NAV
+  ══════════════════════════════════ -->
+
+  <nav class="bottomnav" id="bottomnav" style="display:none;">
+    <button class="nav-item active" data-screen="scan" onclick="navigate('scan', this)">
+      <span class="nav-icon">📡</span>SCAN
+    </button>
+    <button class="nav-item" data-screen="calc" onclick="navigate('calc', this)">
+      <span class="nav-icon">🎯</span>CALC
+    </button>
+    <button class="nav-item" data-screen="journal" onclick="navigate('journal', this)">
+      <span class="nav-icon">📓</span>JOURNAL
+    </button>
+    <button class="nav-item" data-screen="rules" onclick="navigate('rules', this)">
+      <span class="nav-icon">⚙️</span>RULES
+    </button>
+  </nav>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let apiKey = localStorage.getItem('wm_api_key') || '';
+let trades = JSON.parse(localStorage.getItem('wm_trades') || '[]');
+let currentScreen = 'setup';
+
+const CHECKLIST = [
+  'Is this trade WITH the daily trend?',
+  'Do I have a clear entry, SL and TP set?',
+  'Is my lot size 0.01 or within my risk %?',
+  'No major news in the next 30 minutes?',
+  'Am I trading from logic, not emotion?',
+  'Is my daily loss limit still intact?'
+];
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+window.addEventListener('load', () => {
+  if (apiKey) {
+    showMainApp();
+  }
+  buildChecklist();
+  buildLotTable();
+  renderTrades();
+  updateRiskDisplay();
+  document.getElementById('balance-input').addEventListener('input', updateRiskDisplay);
+  document.getElementById('risk-input').addEventListener('input', updateRiskDisplay);
+  if (apiKey) document.getElementById('settings-key').value = apiKey.slice(0,8) + '...';
+});
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  currentScreen = id;
+}
+
+function navigate(screen, btn) {
+  showScreen(screen);
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function showMainApp() {
+  document.getElementById('bottomnav').style.display = 'flex';
+  showScreen('scan');
+}
+
+// ═══════════════════════════════════════
+// API KEY
+// ═══════════════════════════════════════
+function toggleKeyVisibility() {
+  const input = document.getElementById('api-key-input');
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function saveApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key.startsWith('sk-ant')) {
+    toast('❌ That doesn\'t look like a valid Anthropic API key');
+    return;
+  }
+  apiKey = key;
+  localStorage.setItem('wm_api_key', key);
+  showMainApp();
+  toast('✅ API key saved. Welcome to Wingman!');
+}
+
+function updateApiKey() {
+  const key = document.getElementById('settings-key').value.trim();
+  if (!key.startsWith('sk-ant')) { toast('❌ Invalid key format'); return; }
+  apiKey = key;
+  localStorage.setItem('wm_api_key', key);
+  toast('✅ API key updated');
+}
+
+// ═══════════════════════════════════════
+// PAIR SELECTOR
+// ═══════════════════════════════════════
+function togglePair(el) {
+  el.classList.toggle('selected');
+}
+
+function getSelectedPairs() {
+  return [...document.querySelectorAll('.pair-chip.selected')].map(c => c.dataset.pair);
+}
+
+// ═══════════════════════════════════════
+// RISK DISPLAY
+// ═══════════════════════════════════════
+function updateRiskDisplay() {
+  const bal = parseFloat(document.getElementById('balance-input').value) || 0;
+  const risk = parseFloat(document.getElementById('risk-input').value) || 0;
+  document.getElementById('risk-display').textContent = '$' + (bal * risk / 100).toFixed(2);
+}
+
+// ═══════════════════════════════════════
+// MARKET SCAN
+// ═══════════════════════════════════════
+const SCAN_SYSTEM = `You are an elite professional trading analyst. Your role is to analyse financial markets and provide structured trade setups.
+
+CRITICAL: Your ENTIRE response must be a single raw JSON object only. No text before or after. No markdown. No backticks. Just JSON starting with { and ending with }.
+
+For each requested pair, provide:
+- Current approximate price (from your knowledge, note it is approximate)
+- Trend bias on Daily, 4H, 1H (BULLISH / BEARISH / NEUTRAL)
+- 2-3 key support and resistance levels
+- High-impact news events in the next 48 hours (from your knowledge of the economic calendar)
+- 1-3 specific trade setups if conditions warrant, or empty array if not
+- Overall verdict: "SETUP AVAILABLE" / "WAIT" / "NO TRADE" / "AVOID - NEWS RISK"
+
+For lot size calculation:
+- XAUUSD: pip value = $1 per 0.01 lot. lotSize = riskAmount / (SL_distance_in_points). Round down to 0.01
+- BTCUSD: pip value = $0.1 per 0.01 lot. Same formula
+- Forex: pip value = $0.1 per 0.01 lot. Same formula
+- Minimum lot size: 0.01. For very small accounts (<$200) always recommend 0.01
+
+JSON structure:
+{
+  "results": [
+    {
+      "pair": "XAUUSD",
+      "currentPrice": 3080,
+      "priceNote": "Approximate — verify on MT4",
+      "scannedAt": "2026-03-27",
+      "trendBias": { "daily": "BULLISH", "h4": "BULLISH", "h1": "NEUTRAL", "summary": "Strong uptrend, trading above all major MAs. Recent ATH breakout." },
+      "keyLevels": { "support": [3050, 3020, 2980], "resistance": [3100, 3130, 3200] },
+      "newsEvents": [
+        { "time": "Fri 13:30 UTC", "event": "US Core PCE", "impact": "HIGH", "expectedEffect": "Hot = USD up = gold pressure", "tradeAroundIt": false }
+      ],
+      "setups": [
+        {
+          "id": 1, "direction": "BUY",
+          "entryZone": "3060-3065", "stopLoss": 3045,
+          "takeProfit1": 3090, "takeProfit2": 3115,
+          "riskReward": "1:2", "lotSize": 0.01,
+          "confidence": "High", "counterTrend": false,
+          "reasoning": "Pullback to 4H demand zone and prior breakout level. Look for 1H bullish close as trigger.",
+          "invalidation": "1H close below 3045 invalidates."
+        }
+      ],
+      "overallVerdict": "SETUP AVAILABLE",
+      "verdictNote": "Wait for 1H confirmation before entering.",
+      "riskWarning": null
+    }
+  ]
+}`;
+
+async function runScan() {
+  const pairs = getSelectedPairs();
+  if (!pairs.length) { toast('Select at least one pair'); return; }
+  if (!apiKey) { toast('No API key — go to Rules tab → Settings'); return; }
+
+  const btn = document.getElementById('scan-btn');
+  const errDiv = document.getElementById('scan-error');
+  const resultsDiv = document.getElementById('scan-results');
+  const emptyDiv = document.getElementById('scan-empty');
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="border-top-color:#000;"></div> Analysing markets...';
+  errDiv.style.display = 'none';
+  resultsDiv.innerHTML = '';
+  emptyDiv.style.display = 'none';
+
+  const bal = document.getElementById('balance-input').value || '84.76';
+  const risk = document.getElementById('risk-input').value || '1';
+  const riskAmt = (parseFloat(bal) * parseFloat(risk) / 100).toFixed(2);
+
+  const prompt = `Analyse these pairs: ${pairs.join(', ')}
+Account: $${bal} balance | ${risk}% risk | Max $${riskAmt} per trade
+Date: ${new Date().toUTCString()}
+Respond ONLY with the JSON object.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 2000,
+        system: SCAN_SYSTEM,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      throw new Error(e?.error?.message || 'API error ' + res.status);
+    }
+
+    const data = await res.json();
+    const text = data.content?.find(b => b.type === 'text')?.text || '';
+    const parsed = extractJSON(text);
+
+    if (!parsed) throw new Error('Could not parse response. Try again.');
+
+    const arr = parsed.results || (parsed.pair ? [parsed] : null);
+    if (!arr?.length) throw new Error('No results in response. Try again.');
+
+    renderScanResults(arr);
+    document.getElementById('scan-time').innerHTML = 'LAST SCAN<br>' + new Date().toLocaleTimeString();
+
+  } catch(err) {
+    errDiv.textContent = '⚠️ ' + err.message;
+    errDiv.style.display = 'block';
+    emptyDiv.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '⚡ Run Market Scan';
+  }
+}
+
+function extractJSON(text) {
+  if (!text) return null;
+  try { return JSON.parse(text.trim()); } catch {}
+  const s = text.replace(/```json\s*/gi,'').replace(/```\s*/gi,'').trim();
+  try { return JSON.parse(s); } catch {}
+  const f = text.indexOf('{'), l = text.lastIndexOf('}');
+  if (f !== -1 && l > f) { try { return JSON.parse(text.slice(f, l+1)); } catch {} }
+  return null;
+}
+
+function biasColor(b) {
+  if (b==='BULLISH') return 'var(--green)';
+  if (b==='BEARISH') return 'var(--red)';
+  return 'var(--gold)';
+}
+function biasClass(b) {
+  if (b==='BULLISH') return 'badge-bull';
+  if (b==='BEARISH') return 'badge-bear';
+  return 'badge-neutral';
+}
+function impactColor(i) {
+  if (i==='HIGH') return 'var(--red)';
+  if (i==='MEDIUM') return 'var(--gold)';
+  return 'var(--text3)';
+}
+function verdictColor(v) {
+  if (!v) return 'var(--text3)';
+  if (v.includes('SETUP')) return 'var(--green)';
+  if (v.includes('WAIT') || v.includes('NO TRADE')) return 'var(--gold)';
+  if (v.includes('AVOID')) return 'var(--red)';
+  return 'var(--text3)';
+}
+
+function renderScanResults(results) {
+  const div = document.getElementById('scan-results');
+  div.innerHTML = results.map((r,i) => `
+    <div class="fade-up" style="animation-delay:${i*0.1}s">
+      <!-- Verdict Banner -->
+      <div class="verdict-banner" style="border-color:${verdictColor(r.overallVerdict)}33;background:${verdictColor(r.overallVerdict)}08;">
+        <div>
+          <div style="font-family:var(--font-mono);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:3px;">${r.pair} · ${r.scannedAt}</div>
+          <div style="font-family:var(--font-display);font-size:16px;font-weight:800;color:${verdictColor(r.overallVerdict)};">${r.overallVerdict}</div>
+          ${r.verdictNote ? `<div style="font-size:11px;color:var(--text3);margin-top:3px;line-height:1.4;">${r.verdictNote}</div>` : ''}
+        </div>
+        <div style="text-align:right;margin-left:12px;">
+          <div style="font-family:var(--font-mono);font-size:8px;color:var(--text3);">~PRICE</div>
+          <div style="font-family:var(--font-mono);font-size:17px;font-weight:700;color:var(--text);">${r.currentPrice}</div>
+          <div style="font-family:var(--font-mono);font-size:7px;color:var(--text3);">verify MT4</div>
+        </div>
+      </div>
+
+      ${r.riskWarning ? `<div style="background:var(--red-dim);border:1px solid var(--red);border-radius:10px;padding:9px 13px;margin-bottom:10px;font-size:12px;color:#ff9999;">🚨 ${r.riskWarning}</div>` : ''}
+
+      <!-- Trend Bias -->
+      <div class="card">
+        <div class="card-label">Trend Bias</div>
+        <div class="trend-row">
+          ${['daily','h4','h1'].map(tf => `
+            <div class="trend-cell">
+              <div class="trend-tf">${tf.toUpperCase()}</div>
+              <div class="trend-val" style="color:${biasColor(r.trendBias?.[tf])};">${r.trendBias?.[tf] || '—'}</div>
+            </div>`).join('')}
+        </div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.55;">${r.trendBias?.summary || ''}</div>
+        ${r.keyLevels ? `
+        <div class="divider"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div>
+            <div style="font-family:var(--font-mono);font-size:8px;color:var(--green);letter-spacing:1px;margin-bottom:5px;">SUPPORT</div>
+            ${(r.keyLevels.support||[]).map(l=>`<div style="font-family:var(--font-mono);font-size:11px;color:var(--text2);padding:2px 0;">${l}</div>`).join('')}
+          </div>
+          <div>
+            <div style="font-family:var(--font-mono);font-size:8px;color:var(--red);letter-spacing:1px;margin-bottom:5px;">RESISTANCE</div>
+            ${(r.keyLevels.resistance||[]).map(l=>`<div style="font-family:var(--font-mono);font-size:11px;color:var(--text2);padding:2px 0;">${l}</div>`).join('')}
+          </div>
+        </div>` : ''}
+      </div>
+
+      <!-- News -->
+      ${r.newsEvents?.length ? `
+      <div class="card">
+        <div class="card-label">News Radar</div>
+        ${r.newsEvents.map(ev => `
+          <div class="news-item" style="border-left-color:${impactColor(ev.impact)};">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+              <span style="font-size:12px;font-weight:600;color:var(--text);">${ev.event}</span>
+              <span class="badge ${ev.impact==='HIGH'?'badge-high':ev.impact==='MEDIUM'?'badge-medium':'badge-low'}">${ev.impact}</span>
+            </div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-bottom:3px;">⏰ ${ev.time}</div>
+            <div style="font-size:11px;color:var(--text2);">${ev.expectedEffect}</div>
+            ${ev.tradeAroundIt===false ? '<div style="font-size:10px;color:var(--gold);margin-top:4px;">⚠️ Avoid trading 30min before/after</div>' : ''}
+          </div>`).join('')}
+      </div>` : ''}
+
+      <!-- Setups -->
+      ${r.setups?.length ? `
+        <div style="font-family:var(--font-mono);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:8px;">TRADE SETUPS (${r.setups.length})</div>
+        ${r.setups.map(s => {
+          const dc = s.direction==='BUY' ? 'var(--green)' : 'var(--red)';
+          const confColor = s.confidence==='High'?'var(--green)':s.confidence==='Medium'?'var(--gold)':'var(--red)';
+          return `
+          <div class="setup-card fade-up" style="border-color:${dc}33;background:${dc}04;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="background:${dc}22;color:${dc};font-family:var(--font-display);font-weight:800;font-size:14px;padding:3px 12px;border-radius:6px;letter-spacing:1px;">${s.direction}</span>
+                <span style="font-family:var(--font-mono);font-size:10px;color:var(--text3);">${r.pair}</span>
+              </div>
+              <span style="font-family:var(--font-mono);font-size:8px;color:${confColor};background:${confColor}22;padding:2px 8px;border-radius:4px;letter-spacing:1px;">${(s.confidence||'').toUpperCase()}</span>
+            </div>
+            ${s.counterTrend ? `<div style="background:var(--red-dim);border:1px solid var(--red);border-radius:8px;padding:7px 10px;margin-bottom:10px;font-size:11px;color:#ff9999;">⚠️ COUNTER-TREND — Higher risk. Reduce lot size.</div>` : ''}
+            <div class="setup-grid">
+              <div class="setup-cell"><div class="setup-cell-label">ENTRY</div><div class="setup-cell-val" style="color:var(--text);">${s.entryZone}</div></div>
+              <div class="setup-cell"><div class="setup-cell-label">STOP LOSS</div><div class="setup-cell-val" style="color:var(--red);">${s.stopLoss}</div></div>
+              <div class="setup-cell"><div class="setup-cell-label">TP1</div><div class="setup-cell-val" style="color:var(--green);">${s.takeProfit1}</div></div>
+            </div>
+            <div class="setup-grid">
+              <div class="setup-cell"><div class="setup-cell-label">TP2</div><div class="setup-cell-val" style="color:var(--green);">${s.takeProfit2}</div></div>
+              <div class="setup-cell"><div class="setup-cell-label">R:R</div><div class="setup-cell-val" style="color:var(--gold);">${s.riskReward}</div></div>
+              <div class="setup-cell"><div class="setup-cell-label">LOT SIZE</div><div class="setup-cell-val" style="color:var(--blue);">${s.lotSize}</div></div>
+            </div>
+            <div style="background:var(--bg2);border-radius:8px;padding:9px 11px;margin-top:4px;">
+              <div style="font-family:var(--font-mono);font-size:7px;color:var(--text3);letter-spacing:1px;margin-bottom:3px;">REASONING</div>
+              <div style="font-size:12px;color:var(--text2);line-height:1.6;">${s.reasoning}</div>
+            </div>
+            ${s.invalidation ? `<div style="font-size:10px;color:var(--text3);margin-top:6px;">🚫 ${s.invalidation}</div>` : ''}
+          </div>`;
+        }).join('')}
+      ` : `
+        <div style="background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius);padding:24px;text-align:center;margin-bottom:12px;">
+          <div style="font-size:28px;margin-bottom:6px;">🕐</div>
+          <div style="color:var(--gold);font-weight:600;font-size:13px;margin-bottom:4px;">No Clean Setup Right Now</div>
+          <div style="font-size:11px;color:var(--text3);">Not trading is a valid decision.</div>
+        </div>
+      `}
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════
+// LOT SIZE CALCULATOR
+// ═══════════════════════════════════════
+function calcLotSize() {
+  const bal = parseFloat(document.getElementById('calc-balance').value) || 0;
+  const risk = parseFloat(document.getElementById('calc-risk').value) || 0;
+  const entry = parseFloat(document.getElementById('calc-entry').value) || 0;
+  const sl = parseFloat(document.getElementById('calc-sl').value) || 0;
+  const instr = document.getElementById('calc-instrument').value;
+
+  const riskAmt = bal * risk / 100;
+  document.getElementById('calc-risk-usd').textContent = '$' + riskAmt.toFixed(2);
+
+  if (!entry || !sl) {
+    document.getElementById('calc-lot-result').textContent = '—';
+    document.getElementById('calc-sl-pips').textContent = '—';
+    document.getElementById('calc-pip-val').textContent = '—';
+    return;
+  }
+
+  const slDist = Math.abs(entry - sl);
+  let pipVal, pipLabel;
+
+  if (instr === 'XAUUSD') { pipVal = 1.0; pipLabel = '$1/pip'; }
+  else if (instr === 'BTCUSD') { pipVal = 0.1; pipLabel = '$0.1/pt'; }
+  else if (instr === 'US30') { pipVal = 1.0; pipLabel = '$1/pt'; }
+  else { pipVal = 10.0; pipLabel = '$10/pip'; }
+
+  const rawLot = riskAmt / (slDist * pipVal);
+  const lot = Math.max(0.01, Math.floor(rawLot * 100) / 100);
+
+  document.getElementById('calc-lot-result').textContent = lot.toFixed(2);
+  document.getElementById('calc-sl-pips').textContent = slDist.toFixed(1);
+  document.getElementById('calc-pip-val').textContent = pipLabel;
+}
+
+function buildLotTable() {
+  const balances = [50, 100, 200, 500, 1000];
+  const risk = 1;
+  const sl = 20;
+  const html = balances.map(b => {
+    const lot = Math.max(0.01, Math.floor((b * risk/100 / sl) * 100)/100);
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);">
+      <span style="font-family:var(--font-mono);font-size:11px;color:var(--text2);">$${b} balance</span>
+      <span style="font-family:var(--font-mono);font-size:12px;color:var(--gold);font-weight:700;">${lot.toFixed(2)} lots</span>
+    </div>`;
+  }).join('');
+  document.getElementById('lot-table').innerHTML = html + `<div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-top:8px;">Based on 1% risk, 20pt SL distance</div>`;
+}
+
+// ═══════════════════════════════════════
+// JOURNAL
+// ═══════════════════════════════════════
+function showAddTrade() { document.getElementById('add-trade-form').style.display = 'block'; }
+function hideAddTrade() { document.getElementById('add-trade-form').style.display = 'none'; }
+
+function saveTrade() {
+  const trade = {
+    id: Date.now(),
+    date: new Date().toLocaleDateString(),
+    pair: document.getElementById('j-pair').value,
+    dir: document.getElementById('j-dir').value,
+    lot: parseFloat(document.getElementById('j-lot').value) || 0,
+    pnl: parseFloat(document.getElementById('j-pnl').value) || 0,
+    entry: parseFloat(document.getElementById('j-entry').value) || 0,
+    exit: parseFloat(document.getElementById('j-exit').value) || 0,
+    notes: document.getElementById('j-notes').value
+  };
+  trades.unshift(trade);
+  localStorage.setItem('wm_trades', JSON.stringify(trades));
+  hideAddTrade();
+  renderTrades();
+  toast('✅ Trade logged');
+  ['j-lot','j-pnl','j-entry','j-exit','j-notes'].forEach(id => document.getElementById(id).value = '');
+}
+
+function deleteTrade(id) {
+  trades = trades.filter(t => t.id !== id);
+  localStorage.setItem('wm_trades', JSON.stringify(trades));
+  renderTrades();
+  toast('Trade removed');
+}
+
+function renderTrades() {
+  const list = document.getElementById('trade-list');
+  const empty = document.getElementById('journal-empty');
+
+  if (!trades.length) {
+    list.innerHTML = ''; empty.style.display = 'block';
+    updateJournalStats();
+    return;
+  }
+  empty.style.display = 'none';
+  list.innerHTML = trades.map(t => {
+    const cls = t.pnl > 0 ? 'win' : t.pnl < 0 ? 'loss' : 'be';
+    const pnlColor = t.pnl > 0 ? 'var(--green)' : t.pnl < 0 ? 'var(--red)' : 'var(--gold)';
+    return `
+    <div class="journal-entry ${cls}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="badge ${t.dir==='BUY'?'badge-buy':'badge-sell'}">${t.dir}</span>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--text2);">${t.pair}</span>
+          <span style="font-family:var(--font-mono);font-size:10px;color:var(--text3);">${t.lot} lots</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:var(--font-display);font-size:15px;font-weight:700;color:${pnlColor};">${t.pnl >= 0 ? '+' : ''}$${t.pnl.toFixed(2)}</span>
+          <button onclick="deleteTrade(${t.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;">✕</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;margin-bottom:4px;">
+        <span style="font-family:var(--font-mono);font-size:10px;color:var(--text3);">📅 ${t.date}</span>
+        ${t.entry ? `<span style="font-family:var(--font-mono);font-size:10px;color:var(--text3);">In: ${t.entry} → Out: ${t.exit}</span>` : ''}
+      </div>
+      ${t.notes ? `<div style="font-size:11px;color:var(--text2);font-style:italic;">"${t.notes}"</div>` : ''}
+    </div>`;
+  }).join('');
+  updateJournalStats();
+}
+
+function updateJournalStats() {
+  const total = trades.length;
+  const wins = trades.filter(t => t.pnl > 0).length;
+  const pnl = trades.reduce((s,t) => s + t.pnl, 0);
+  const winRate = total ? Math.round(wins/total*100) : 0;
+  const avgRR = total ? (pnl / total).toFixed(2) : 0;
+
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-winrate').textContent = winRate + '%';
+  document.getElementById('stat-winrate').style.color = winRate >= 50 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('stat-pnl').textContent = (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(2);
+  document.getElementById('stat-pnl').style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('stat-avg-rr').textContent = avgRR;
+}
+
+// ═══════════════════════════════════════
+// CHECKLIST
+// ═══════════════════════════════════════
+function buildChecklist() {
+  const div = document.getElementById('checklist-items');
+  div.innerHTML = CHECKLIST.map((item, i) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);" onclick="toggleCheck(${i})">
+      <div id="check-${i}" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s;cursor:pointer;"></div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.4;">${item}</div>
+    </div>
+  `).join('');
+}
+
+function toggleCheck(i) {
+  const el = document.getElementById('check-' + i);
+  const checked = el.dataset.checked === 'true';
+  el.dataset.checked = !checked;
+  el.style.background = !checked ? 'var(--green)' : 'transparent';
+  el.style.borderColor = !checked ? 'var(--green)' : 'var(--border2)';
+  el.innerHTML = !checked ? '✓' : '';
+  el.style.color = '#000';
+  el.style.fontSize = '12px';
+  el.style.fontWeight = '700';
+}
+
+function resetChecklist() {
+  CHECKLIST.forEach((_,i) => {
+    const el = document.getElementById('check-' + i);
+    el.dataset.checked = 'false';
+    el.style.background = 'transparent';
+    el.style.borderColor = 'var(--border2)';
+    el.innerHTML = '';
+  });
+}
+
+function checkAllTrade() {
+  const allChecked = CHECKLIST.every((_,i) => document.getElementById('check-'+i).dataset.checked === 'true');
+  if (allChecked) { toast('✅ All clear — you may trade!'); }
+  else { toast('⚠️ Complete all checklist items first'); }
+}
+
+// ═══════════════════════════════════════
+// DAILY LIMIT
+// ═══════════════════════════════════════
+function updateDailyLimit() {
+  const pnl = parseFloat(document.getElementById('daily-pnl').value) || 0;
+  const bal = parseFloat(document.getElementById('daily-balance').value) || 0;
+  if (!bal) return;
+
+  const limit = bal * 0.05;
+  const used = Math.abs(Math.min(0, pnl));
+  const remaining = limit - used;
+  const pct = Math.min(100, (used/limit)*100);
+
+  const div = document.getElementById('daily-limit-display');
+  const color = pnl < -limit ? 'var(--red)' : pnl < -limit*0.5 ? 'var(--gold)' : 'var(--green)';
+
+  div.innerHTML = `
+    <div class="calc-display-val" style="font-size:22px;color:${color};">${pnl < -limit ? 'STOP TRADING' : '$' + remaining.toFixed(2) + ' left'}</div>
+    <div class="calc-display-label">DAILY LIMIT: $${limit.toFixed(2)} (5%)</div>
+    <div style="margin-top:10px;background:var(--bg3);border-radius:4px;height:6px;overflow:hidden;">
+      <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;transition:width 0.3s;"></div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════
+// MISC
+// ═══════════════════════════════════════
+function clearAllData() {
+  if (confirm('Clear all trades and settings? This cannot be undone.')) {
+    localStorage.clear();
+    apiKey = '';
+    trades = [];
+    showScreen('setup');
+    document.getElementById('bottomnav').style.display = 'none';
+    toast('All data cleared');
+  }
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+</script>
+
+</body>
+</html>
