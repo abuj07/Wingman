@@ -224,6 +224,7 @@ select.input option { background:#111116; color:#E8E8F0; }
 /* ─── DESKTOP (1200px+) ─── */
 @media(min-width:1200px) {
   #app { display:grid !important; grid-template-columns:240px 1fr 320px; grid-template-rows:1fr; height:100vh; overflow:hidden; }
+  #app.chart-mode { grid-template-columns:240px 1fr 0px; }
   .mobile-topbar { display:none; }
   .mobile-nav { display:none; }
   .desktop-topbar { display:none !important; }
@@ -1064,6 +1065,9 @@ select.input option { background:#111116; color:#E8E8F0; }
     <div class="nav-section-label">Trading</div>
     <button class="nav-item active" onclick="navigate('scan',this)"><span class="nav-item-icon">📡</span>Market Scan</button>
     <button class="nav-item" onclick="navigate('chart',this)"><span class="nav-item-icon">📈</span>Live Chart</button>
+    <a href="chart.html" target="_blank" class="nav-item" style="text-decoration:none;font-size:11px;" title="Open chart in full page">
+      <span class="nav-item-icon" style="font-size:12px;">↗</span><span style="color:var(--text3);">Full Page Chart</span>
+    </a>
     <button class="nav-item" onclick="navigate('calc',this)"><span class="nav-item-icon">🎯</span>Risk Calculator</button>
 
     <div class="nav-section-label" style="margin-top:6px;">Markets &amp; Analysis</div>
@@ -2067,7 +2071,17 @@ function launchApp() {
   loadEventsForDate(_today).then(() => {
     const ds = dateStr(_today);
     if (calEventCache[ds]) renderScanNewsStrip(calEventCache[ds]);
+    else renderScanNewsStrip([]); // clear "loading" state
+  }).catch(() => {
+    renderScanNewsStrip([]); // clear on error too
   });
+  // Fallback: clear "Loading events..." after 5 seconds regardless
+  setTimeout(() => {
+    const strip = document.getElementById('scan-news-strip');
+    if (strip && strip.innerHTML.includes('Loading')) {
+      renderScanNewsStrip([]);
+    }
+  }, 5000);
   // Chart initialises lazily when user navigates to the chart tab
 }
 
@@ -2132,20 +2146,18 @@ function navigate(tab, btn) {
   if (btn) btn.classList.add('active');
   document.querySelectorAll(`.nav-item[onclick*="navigate('${tab}'"], .mobile-nav-item[onclick*="navigate('${tab}'"]`).forEach(b => b.classList.add('active'));
 
-  // Chart tab: remove padding + hide right panel so chart fills full width
-  const mc = document.querySelector('.main-content');
-  const rp = document.getElementById('right-panel');
-  if (mc) {
-    if (tab === 'chart') {
-      mc.style.padding = '0';
-      mc.style.overflow = 'hidden';
-      if (rp) rp.style.display = 'none';
-    } else {
-      mc.style.padding = '';
-      mc.style.overflow = '';
-      // Restore right panel on desktop
-      if (rp && window.innerWidth >= 1200) rp.style.removeProperty('display');
-    }
+  // Chart tab: collapse right panel column so chart fills full width
+  const mc  = document.querySelector('.main-content');
+  const rp  = document.getElementById('right-panel');
+  const app = document.getElementById('app');
+  if (tab === 'chart') {
+    if (mc)  { mc.style.padding = '0'; mc.style.overflow = 'hidden'; }
+    if (rp)  rp.style.display = 'none';
+    if (app) app.classList.add('chart-mode');
+  } else {
+    if (mc)  { mc.style.padding = ''; mc.style.overflow = ''; }
+    if (app) app.classList.remove('chart-mode');
+    if (rp && window.innerWidth >= 1200) rp.style.removeProperty('display');
   }
 
   // Init chart iframe on first visit
@@ -2352,11 +2364,13 @@ function calcChartPip() {
 
 async function fetchLivePrices() {
   if (!tdKey) {
-    // No Twelve Data key — show placeholder in price strip
-    const mobile = document.getElementById('mobile-price-tiles');
-    if (mobile && mobile.innerHTML.includes('Fetching')) {
-      mobile.innerHTML = '<div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);">Add Twelve Data key in Settings for live prices</div>';
-    }
+    // No Twelve Data key — always update price strip with a clear message
+    const mobile   = document.getElementById('mobile-price-tiles');
+    const liveDot  = document.getElementById('price-live-dot');
+    const mStamp   = document.getElementById('mobile-price-stamp');
+    if (mobile) mobile.innerHTML = '<div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);">Live prices require a <strong style=\'color:var(--gold);\'>Twelve Data</strong> key — add it in Settings</div>';
+    if (liveDot) liveDot.style.display = 'none';
+    if (mStamp)  mStamp.textContent = '';
     return;
   }
 
@@ -2523,8 +2537,14 @@ function vc(v) {
 }
 
 function renderScanResults(results) {
-  lastScanResults = results; // store for chart page
-  updateChartKeyLevels(currentChartPair); // refresh chart side panel
+  lastScanResults = results;
+  updateChartKeyLevels(currentChartPair);
+  // Persist key levels to localStorage so chart.html can read them
+  results.forEach(r => {
+    if (r.pair && r.keyLevels) {
+      localStorage.setItem('wm_last_levels_' + r.pair, JSON.stringify(r.keyLevels));
+    }
+  });
   const div = document.getElementById('scan-results');
   div.innerHTML = results.map((r,ri) => {
     const vs = vc(r.overallVerdict);
@@ -4670,9 +4690,12 @@ function filterCalEvents(btn, filter) {
 function renderScanNewsStrip(events) {
   const strip = document.getElementById('scan-news-strip');
   if (!strip) return;
-  const high = events.filter(e => e.impact === 'high' || e.impact === 'speech').slice(0, 4);
+  const high = (events || []).filter(e => e.impact === 'high' || e.impact === 'speech').slice(0, 4);
   if (!high.length) {
-    strip.innerHTML = '<div style="font-family:var(--font-mono);font-size:10px;color:var(--green);">✅ No high-impact events scheduled today</div>';
+    const msg = events && events.length === 0 && !document.getElementById('scan-news-strip').innerHTML.includes('Loading')
+      ? '✅ No high-impact events today'
+      : '✅ No high-impact events scheduled today';
+    strip.innerHTML = '<div style="font-family:var(--font-mono);font-size:10px;color:var(--green);">' + msg + '</div>';
     return;
   }
   strip.innerHTML = high.map(ev => {
