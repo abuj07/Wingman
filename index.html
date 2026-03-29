@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Wingman">
-<title>Wingman · AI Trading Analyst</title>
+<title>Wingman · Trade Analyst</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -931,7 +931,19 @@ select.input option { background:#111116; color:#E8E8F0; }
 .news-widget-title { font-size:11px; color:var(--text2); flex:1; line-height:1.3; }
 .news-widget-badge { font-family:var(--font-mono); font-size:7px; padding:1px 5px; border-radius:3px; flex-shrink:0; }
 
-/* Speaker alert strip */
+
+/* ─── SIM TRADER ─── */
+#sim-layout {
+  grid-template-columns: 340px 1fr;
+}
+@media(max-width:900px) {
+  #sim-layout {
+    grid-template-columns: 1fr;
+  }
+}
+.sim-pos-row { transition: background 0.2s; }
+.sim-pos-row:hover { background: var(--bg3); }
+
 .speaker-strip {
   background:linear-gradient(90deg,#1a0a2e,#0d0d1a);
   border:1px solid #A855F744; border-radius:var(--r-sm);
@@ -953,11 +965,11 @@ select.input option { background:#111116; color:#E8E8F0; }
     <div class="setup-hero">
       <div class="setup-icon">⚡</div>
       <div class="setup-title">Wingman</div>
-      <div class="setup-sub">Multi-asset AI analysis · Live order book · Institutional positioning · Economic calendar · Trade journal & psychology coach</div>
+      <div class="setup-sub">Multi-asset analysis · Live order book · Institutional positioning · Economic calendar · Trade journal & psychology coach</div>
     </div>
 
     <div class="card">
-      <div class="card-label">Step 1 — Claude API Key (AI brain)</div>
+      <div class="card-label">Step 1 — Claude API Key (analysis engine)</div>
       <div class="step"><div class="step-num">1</div><div class="step-text">Go to <strong><a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></strong></div></div>
       <div class="step"><div class="step-num">2</div><div class="step-text">Create account → <strong>API Keys</strong> → <strong>Create Key</strong></div></div>
       <div class="step" style="margin-bottom:12px;"><div class="step-num">3</div><div class="step-text">Add <strong>$5 credit</strong> (lasts months — fractions of a cent per scan)</div></div>
@@ -1035,11 +1047,11 @@ select.input option { background:#111116; color:#E8E8F0; }
 
   <!-- MOBILE TOP BAR -->
   <div class="mobile-topbar">
-    <div style="display:flex;align-items:center;gap:8px;">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="navigate('scan',null)">
       <div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#F0B429,#FF6B00);display:flex;align-items:center;justify-content:center;font-size:15px;">⚡</div>
       <div>
         <div style="font-family:var(--font-display);font-size:16px;font-weight:800;">Wingman</div>
-        <div style="font-family:var(--font-mono);font-size:7px;color:var(--text3);letter-spacing:2px;">AI TRADING ANALYST</div>
+        <div style="font-family:var(--font-mono);font-size:7px;color:var(--text3);letter-spacing:2px;">TRADE ANALYST</div>
       </div>
     </div>
     <div id="mobile-clock" style="font-family:var(--font-mono);font-size:10px;color:var(--text3);text-align:right;"></div>
@@ -1047,11 +1059,11 @@ select.input option { background:#111116; color:#E8E8F0; }
 
   <!-- SIDEBAR (tablet + desktop) -->
   <div class="sidebar">
-    <div class="sidebar-brand">
+    <div class="sidebar-brand" style="cursor:pointer;" onclick="navigate('scan',null)">
       <div class="sidebar-brand-icon">⚡</div>
       <div>
         <div class="sidebar-brand-name">Wingman</div>
-        <div class="sidebar-brand-sub">AI ANALYST</div>
+        <div class="sidebar-brand-sub">TRADE ANALYST</div>
       </div>
     </div>
 
@@ -1063,11 +1075,9 @@ select.input option { background:#111116; color:#E8E8F0; }
     </div>
 
     <div class="nav-section-label">Trading</div>
-    <button class="nav-item active" onclick="navigate('scan',this)"><span class="nav-item-icon">📡</span>Market Scan</button>
+    <button class="nav-item" id="nav-scan" onclick="navigate('scan',this)"><span class="nav-item-icon">📡</span>Market Scan</button>
     <button class="nav-item" onclick="navigate('chart',this)"><span class="nav-item-icon">📈</span>Live Chart</button>
-    <a href="chart.html" target="_blank" class="nav-item" style="text-decoration:none;font-size:11px;" title="Open chart in full page">
-      <span class="nav-item-icon" style="font-size:12px;">↗</span><span style="color:var(--text3);">Full Page Chart</span>
-    </a>
+    <button class="nav-item" onclick="navigate('simtrader',this)"><span class="nav-item-icon">🎮</span>Sim Trader</button>
     <button class="nav-item" onclick="navigate('calc',this)"><span class="nav-item-icon">🎯</span>Risk Calculator</button>
 
     <div class="nav-section-label" style="margin-top:6px;">Markets &amp; Analysis</div>
@@ -1136,14 +1146,14 @@ select.input option { background:#111116; color:#E8E8F0; }
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
             <div class="card-label" style="margin:0;">Instruments to Scan</div>
             <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);">
-              <span id="scan-pair-count" style="color:var(--gold);font-weight:700;">1</span> selected
+              <span id="scan-pair-count" style="color:var(--gold);font-weight:700;">0</span> selected
             </div>
           </div>
 
           <!-- Multi-select instrument dropdown -->
           <div class="inst-dropdown-wrap" style="margin-bottom:10px;">
             <button class="inst-trigger" onclick="toggleInstPanel()" id="inst-trigger-btn">
-              <span class="inst-trigger-label" id="inst-trigger-label">XAUUSD — Gold</span>
+              <span class="inst-trigger-label" id="inst-trigger-label" style="color:var(--text3);">Select instruments to scan...</span>
               <span class="inst-trigger-arrow">▼</span>
             </button>
             <div class="inst-panel" id="inst-panel">
@@ -1162,11 +1172,7 @@ select.input option { background:#111116; color:#E8E8F0; }
           </div>
 
           <!-- Selected instrument chips -->
-          <div class="inst-selected-chips" id="inst-selected-chips">
-            <div class="inst-sel-chip" data-id="XAUUSD">
-              XAUUSD <span class="inst-sel-chip-x" onclick="removeInstrument('XAUUSD',event)">✕</span>
-            </div>
-          </div>
+          <div class="inst-selected-chips" id="inst-selected-chips"></div>
 
           <!-- Correlation hint -->
           <div id="corr-hint" style="display:none;background:var(--blue-dim);border:1px solid var(--blue-dim);border-radius:6px;padding:8px 10px;margin-top:8px;font-size:11px;color:var(--text2);line-height:1.5;"></div>
@@ -1253,9 +1259,12 @@ select.input option { background:#111116; color:#E8E8F0; }
           <div id="lot-ref-table"></div>
         </div>
 
-        <div class="card" style="border-color:var(--red-dim);">
-          <div class="card-label" style="color:var(--red);">⚠ Martingale Warning</div>
-          <div style="font-size:13px;color:var(--text2);line-height:1.65;">Based on your trading history, you escalated from 0.01 → 0.13 lots after losses. At your current balance, <strong style="color:var(--green);">0.01 lots maximum</strong> until balance exceeds $500. Never increase size after a losing trade.</div>
+        <div class="card" id="trade-behaviour-card">
+          <div class="card-label">📊 Trade Behaviour Review</div>
+          <div id="trade-behaviour-content">
+            <div style="font-size:12px;color:var(--text3);line-height:1.6;">No trades logged yet. Use Sim Trader or log trades in your journal to get a behavioural analysis here.</div>
+          </div>
+          <button onclick="refreshTradeBehaviourReview()" id="behaviour-refresh-btn" style="margin-top:10px;background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text3);font-family:var(--font-mono);font-size:9px;padding:5px 12px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">↻ Refresh Analysis</button>
         </div>
       </div>
     </div>
@@ -1488,7 +1497,7 @@ select.input option { background:#111116; color:#E8E8F0; }
               <input type="password" class="input" id="s-gemini-key" placeholder="AIza..." autocomplete="off" style="border-color:#00C8FF33;">
               <button class="key-eye" onclick="toggleVis('s-gemini-key',this)">👁</button>
             </div>
-            <div style="font-size:10px;color:var(--text3);margin-top:4px;">Google Gemini Flash — alternative sentiment AI. Free 1,500 requests/day at <a href="https://aistudio.google.com" target="_blank" style="color:var(--blue);">aistudio.google.com</a></div>
+            <div style="font-size:10px;color:var(--text3);margin-top:4px;">Google Gemini Flash — alternative sentiment engine. Free 1,500 requests/day at <a href="https://aistudio.google.com" target="_blank" style="color:var(--blue);">aistudio.google.com</a></div>
           </div>
           <div style="margin-bottom:12px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
@@ -1650,8 +1659,21 @@ select.input option { background:#111116; color:#E8E8F0; }
         <div style="font-family:var(--font-display);font-size:18px;font-weight:800;">Session Heatmap</div>
         <button class="voice-btn" onclick="speakHeatmap()"><span class="voice-icon"></span>Brief me</button>
       </div>
+      <div class="card" style="margin-bottom:10px;padding:12px 14px;background:var(--bg2);border:1px solid var(--border2);">
+        <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-bottom:8px;letter-spacing:1px;">DATA SOURCE</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text2);">
+            <input type="checkbox" id="hm-sim" checked onchange="buildHeatmap()" style="accent-color:var(--gold);width:14px;height:14px;">
+            Sim Trader trades
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text2);">
+            <input type="checkbox" id="hm-journal" onchange="buildHeatmap()" style="accent-color:var(--gold);width:14px;height:14px;">
+            Trade Journal
+          </label>
+        </div>
+      </div>
       <div class="card" style="margin-bottom:12px;">
-        <div class="card-label">P&L by Day × Session (from journal)</div>
+        <div class="card-label">P&L by Day × Session</div>
         <div id="heatmap-grid" style="margin-top:8px;"></div>
         <div style="display:flex;gap:16px;margin-top:12px;font-family:var(--font-mono);font-size:9px;color:var(--text3);">
           <span>■ <span style="color:var(--green);">Profitable</span></span>
@@ -1666,6 +1688,178 @@ select.input option { background:#111116; color:#E8E8F0; }
       <div class="card">
         <div class="card-label">Pair Performance</div>
         <div id="heatmap-pairs"></div>
+      </div>
+    </div>
+
+    <!-- ── SIM TRADER TAB ── -->
+    <div class="tab-panel" id="tab-simtrader">
+      <!-- Account Bar -->
+      <div class="card" style="margin-bottom:12px;padding:14px 16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+            <div>
+              <div style="font-family:var(--font-mono);font-size:7px;color:var(--text3);letter-spacing:2px;margin-bottom:2px;">ACCOUNT BALANCE</div>
+              <div id="sim-balance-display" style="font-family:var(--font-display);font-size:26px;font-weight:800;color:var(--green);line-height:1;">$10,000.00</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+              <div style="background:var(--bg2);border-radius:8px;padding:8px 12px;text-align:center;">
+                <div id="sim-equity-display" style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--text);">$10,000.00</div>
+                <div style="font-family:var(--font-mono);font-size:7px;color:var(--text3);margin-top:2px;">EQUITY</div>
+              </div>
+              <div style="background:var(--bg2);border-radius:8px;padding:8px 12px;text-align:center;">
+                <div id="sim-pnl-display" style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--text);">$0.00</div>
+                <div style="font-family:var(--font-mono);font-size:7px;color:var(--text3);margin-top:2px;">OPEN P&L</div>
+              </div>
+              <div style="background:var(--bg2);border-radius:8px;padding:8px 12px;text-align:center;">
+                <div id="sim-total-pnl-display" style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--text);">$0.00</div>
+                <div style="font-family:var(--font-mono);font-size:7px;color:var(--text3);margin-top:2px;">NET P&L</div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button onclick="simAddFunds()" style="background:var(--green-dim);border:1px solid var(--green);border-radius:7px;padding:7px 14px;color:var(--green);font-family:var(--font-mono);font-size:10px;cursor:pointer;font-weight:700;">+ Add Funds</button>
+            <button onclick="simResetAccount()" style="background:none;border:1px solid var(--border2);border-radius:7px;padding:7px 14px;color:var(--text3);font-family:var(--font-mono);font-size:10px;cursor:pointer;">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Form + Chart (two-col on desktop) -->
+      <div style="display:grid;grid-template-columns:340px 1fr;gap:12px;" id="sim-layout">
+
+        <!-- ORDER FORM (TradeLocker-style) -->
+        <div>
+          <!-- Instrument + Direction -->
+          <div class="card" style="margin-bottom:10px;">
+            <div class="card-label">New Order</div>
+            <div style="margin-bottom:10px;">
+              <label class="input-label">INSTRUMENT</label>
+              <select class="input" id="sim-instrument" onchange="simUpdatePrice()" style="font-size:12px;">
+                <option value="XAUUSD">XAU/USD — Gold</option>
+                <option value="BTCUSD">BTC/USD — Bitcoin</option>
+                <option value="EURUSD">EUR/USD — Euro</option>
+                <option value="GBPUSD">GBP/USD — Sterling</option>
+                <option value="GBPJPY">GBP/JPY — Guppy</option>
+                <option value="USDJPY">USD/JPY — Yen</option>
+                <option value="ETHUSD">ETH/USD — Ethereum</option>
+                <option value="US30">US30 — Dow Jones</option>
+                <option value="SPX500">SPX500 — S&P 500</option>
+                <option value="NAS100">NAS100 — Nasdaq</option>
+                <option value="USOIL">WTI — Crude Oil</option>
+                <option value="XAGUSD">XAG/USD — Silver</option>
+              </select>
+            </div>
+
+            <!-- BUY / SELL toggle -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border-radius:8px;overflow:hidden;border:1px solid var(--border2);margin-bottom:12px;">
+              <button id="sim-buy-btn" onclick="simSetDir('BUY')" style="padding:12px;background:var(--green-dim);border:none;color:var(--green);font-family:var(--font-display);font-size:14px;font-weight:800;cursor:pointer;border-right:1px solid var(--border2);letter-spacing:1px;">▲ BUY</button>
+              <button id="sim-sell-btn" onclick="simSetDir('SELL')" style="padding:12px;background:none;border:none;color:var(--text3);font-family:var(--font-display);font-size:14px;font-weight:800;cursor:pointer;letter-spacing:1px;">▼ SELL</button>
+            </div>
+
+            <!-- Market price display -->
+            <div style="background:var(--bg2);border-radius:8px;padding:10px 12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1px;">MARKET PRICE</div>
+              <div id="sim-market-price" style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--gold);">—</div>
+            </div>
+
+            <!-- Order type -->
+            <div style="margin-bottom:10px;">
+              <label class="input-label">ORDER TYPE</label>
+              <select class="input" id="sim-order-type" onchange="simToggleLimit()" style="font-size:12px;">
+                <option value="market">Market</option>
+                <option value="limit">Limit</option>
+                <option value="stop">Stop</option>
+              </select>
+            </div>
+
+            <!-- Limit/Stop price (hidden for market) -->
+            <div id="sim-limit-row" style="display:none;margin-bottom:10px;">
+              <label class="input-label">ENTRY PRICE</label>
+              <input type="number" class="input" id="sim-entry-price" placeholder="Enter price level" step="0.01" style="font-size:12px;">
+            </div>
+
+            <!-- Volume / Risk -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+              <div>
+                <label class="input-label">LOT SIZE</label>
+                <input type="number" class="input" id="sim-lots" value="0.01" min="0.01" step="0.01" oninput="simCalcRisk()" style="font-size:12px;color:var(--gold);">
+              </div>
+              <div>
+                <label class="input-label">RISK AMOUNT ($)</label>
+                <input type="number" class="input" id="sim-risk-amt" placeholder="auto" oninput="simCalcLotFromRisk()" style="font-size:12px;color:var(--gold);">
+              </div>
+            </div>
+
+            <!-- TP / SL -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+              <div>
+                <label class="input-label" style="color:var(--green);">TAKE PROFIT</label>
+                <input type="number" class="input" id="sim-tp" placeholder="Optional" step="0.01" oninput="simCalcRisk()" style="font-size:12px;border-color:var(--green-dim);">
+              </div>
+              <div>
+                <label class="input-label" style="color:var(--red);">STOP LOSS</label>
+                <input type="number" class="input" id="sim-sl" placeholder="Optional" step="0.01" oninput="simCalcRisk()" style="font-size:12px;border-color:var(--red-dim);">
+              </div>
+            </div>
+
+            <!-- Leverage -->
+            <div style="margin-bottom:12px;">
+              <label class="input-label">LEVERAGE</label>
+              <select class="input" id="sim-leverage" onchange="simCalcRisk()" style="font-size:12px;">
+                <option value="10">1:10</option>
+                <option value="20">1:20</option>
+                <option value="30">1:30</option>
+                <option value="50">1:50</option>
+                <option value="100" selected>1:100</option>
+                <option value="200">1:200</option>
+                <option value="300">1:300</option>
+                <option value="400">1:400</option>
+                <option value="500">1:500</option>
+                <option value="1000">1:1000</option>
+                <option value="2000">1:2000</option>
+                <option value="5000">1:5000</option>
+                <option value="999999">1:Unlimited</option>
+              </select>
+            </div>
+
+            <!-- Risk summary -->
+            <div id="sim-risk-summary" style="background:var(--bg2);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-family:var(--font-mono);font-size:10px;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text3);">Margin required</span><span id="sim-margin" style="color:var(--gold);">—</span></div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text3);">Max risk</span><span id="sim-max-risk" style="color:var(--red);">—</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text3);">R:R ratio</span><span id="sim-rr-display" style="color:var(--blue);">—</span></div>
+            </div>
+
+            <!-- Place order button -->
+            <button onclick="simPlaceOrder()" id="sim-place-btn" style="width:100%;padding:14px;border-radius:8px;border:none;font-family:var(--font-display);font-size:15px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#00E87A,#00C860);color:#000;letter-spacing:0.5px;transition:all 0.15s;">▲ PLACE BUY</button>
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE: Open positions + history -->
+        <div>
+          <!-- Open Positions -->
+          <div class="card" style="margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <div class="card-label" style="margin:0;">Open Positions</div>
+              <button onclick="simCloseAll()" style="background:none;border:1px solid var(--red-dim);border-radius:5px;color:var(--red);font-family:var(--font-mono);font-size:9px;padding:3px 10px;cursor:pointer;">Close All</button>
+            </div>
+            <div id="sim-open-positions">
+              <div class="empty"><div class="empty-icon" style="font-size:24px;">📊</div><div class="empty-text" style="font-size:11px;">No open positions</div></div>
+            </div>
+          </div>
+
+          <!-- Trade History -->
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <div class="card-label" style="margin:0;">Trade History</div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <span id="sim-history-stats" style="font-family:var(--font-mono);font-size:9px;color:var(--text3);"></span>
+                <button onclick="simClearHistory()" style="background:none;border:1px solid var(--border2);border-radius:5px;color:var(--text3);font-family:var(--font-mono);font-size:9px;padding:3px 10px;cursor:pointer;">Clear</button>
+              </div>
+            </div>
+            <div id="sim-history">
+              <div class="empty"><div class="empty-icon" style="font-size:24px;">📋</div><div class="empty-text" style="font-size:11px;">No closed trades yet</div></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1789,7 +1983,7 @@ select.input option { background:#111116; color:#E8E8F0; }
     <div class="tab-panel" id="tab-screenshot">
       <div style="font-family:var(--font-display);font-size:18px;font-weight:800;margin-bottom:16px;">Chart Analysis</div>
       <div class="card" style="margin-bottom:12px;">
-        <div class="card-label">Upload a chart screenshot for AI analysis</div>
+        <div class="card-label">Upload a chart screenshot for analysis</div>
         <div class="screenshot-drop" id="screenshot-drop" onclick="document.getElementById('screenshot-file').click()" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
           <input type="file" id="screenshot-file" accept="image/*" onchange="handleScreenshotFile(event)">
           <div id="screenshot-preview" style="display:none;margin-bottom:12px;">
@@ -1887,9 +2081,9 @@ select.input option { background:#111116; color:#E8E8F0; }
   <div class="mobile-nav">
     <button class="mobile-nav-item active" onclick="navigate('scan',this)"><span class="mobile-nav-icon">📡</span>SCAN</button>
     <button class="mobile-nav-item" onclick="navigate('chart',this)"><span class="mobile-nav-icon">📈</span>CHART</button>
+    <button class="mobile-nav-item" onclick="navigate('simtrader',this)"><span class="mobile-nav-icon">🎮</span>SIM</button>
     <button class="mobile-nav-item" onclick="navigate('depth',this)"><span class="mobile-nav-icon">🌊</span>DEPTH</button>
     <button class="mobile-nav-item" onclick="navigate('journal',this)"><span class="mobile-nav-icon">📓</span>JOURNAL</button>
-    <button class="mobile-nav-item" onclick="navigate('alerts',this)"><span class="mobile-nav-icon">🔔</span>ALERTS</button>
   </div>
 
 </div><!-- /app -->
@@ -2110,13 +2304,14 @@ function disconnectBinancePair(pairId) {
   }
 }
 
-// Sync Binance connections to currently selected pairs
+// Sync Binance connections to currently selected pairs + home pairs
 function syncBinanceConnections() {
   const selected = getSelectedPairs();
-  const pairs = selected.length ? selected : ['XAUUSD','BTCUSD','EURUSD','GBPUSD'];
+  // Always connect home pairs + scan selection
+  const pairs = [...new Set([...HOME_PRICE_PAIRS, ...selected])];
   // Connect new crypto pairs
   pairs.forEach(p => { if (BINANCE_SYMBOLS[p]) connectBinancePair(p); });
-  // Disconnect pairs no longer selected
+  // Disconnect pairs no longer needed
   Object.keys(binanceWsSockets).forEach(p => {
     if (!pairs.includes(p)) disconnectBinancePair(p);
   });
@@ -2172,9 +2367,12 @@ function updatePriceTileFromCache(pairId, price) {
   }
 }
 
+// Default home page price strip — always show these regardless of scan selection
+const HOME_PRICE_PAIRS = ['XAUUSD','BTCUSD','EURUSD','GBPUSD','USDJPY','ETHUSD','US30','USOIL'];
+
 function rebuildPriceStrip() {
-  const selected = getSelectedPairs();
-  const pairs = selected.length ? selected : ['XAUUSD','BTCUSD','EURUSD','GBPUSD'];
+  // Home strip always shows the default common instruments
+  const pairs = HOME_PRICE_PAIRS;
   const mobile = document.getElementById('mobile-price-tiles');
   if (!mobile) return;
   mobile.innerHTML = pairs.map(p => {
@@ -2231,7 +2429,7 @@ function launchApp() {
   }
 
   // Always start on scan tab and sync nav active states
-  navigate('scan', null);
+  navigate('scan', document.getElementById('nav-scan'));
 
   // Show right panel on desktop
   if (window.innerWidth >= 1200) {
@@ -2355,6 +2553,8 @@ function navigate(tab, btn) {
   }
   // Rebuild heatmap on navigate
   if (tab === 'heatmap') buildHeatmap();
+  // Init sim trader on navigate
+  if (tab === 'simtrader') initSimTrader();
   // Render alerts on navigate
   if (tab === 'alerts') renderAlerts();
   // Init market depth on navigate (lazy)
@@ -2547,7 +2747,8 @@ function calcChartPip() {
 
 async function fetchLivePrices() {
   const selected = getSelectedPairs();
-  const allPairs = (selected.length ? selected : ['XAUUSD','BTCUSD','EURUSD','GBPUSD']).slice(0, 8);
+  // Always fetch home price pairs + any scan selection (up to 12 total)
+  const allPairs = [...new Set([...HOME_PRICE_PAIRS, ...selected])].slice(0, 12);
 
   // ── Step 1: Crypto → Binance WebSocket (always, free, real-time) ──────────
   syncBinanceConnections();
@@ -2957,7 +3158,7 @@ function copyText(text, btn) {
 // ═══════════════════════════════════════════
 // INSTRUMENT SELECTOR
 // ═══════════════════════════════════════════
-let selectedInstruments = ['XAUUSD']; // default selection
+let selectedInstruments = []; // no default selection — user chooses
 
 function buildInstPanel() {
   const body = document.getElementById('inst-panel-body');
@@ -3033,7 +3234,6 @@ function toggleInstrument(id) {
   if (idx === -1) {
     selectedInstruments.push(id);
   } else {
-    if (selectedInstruments.length === 1) { toast('⚠️ Keep at least one instrument selected'); return; }
     selectedInstruments.splice(idx, 1);
   }
   updateInstUI();
@@ -3042,14 +3242,13 @@ function toggleInstrument(id) {
 
 function removeInstrument(id, e) {
   e && e.stopPropagation();
-  if (selectedInstruments.length === 1) { toast('⚠️ Keep at least one instrument selected'); return; }
   selectedInstruments = selectedInstruments.filter(x => x !== id);
   updateInstUI();
   updateCorrHint();
 }
 
 function clearAllInstruments() {
-  selectedInstruments = ['XAUUSD'];
+  selectedInstruments = [];
   updateInstUI();
   buildInstPanel();
   updateCorrHint();
@@ -3066,11 +3265,16 @@ function updateInstUI() {
   // Update trigger label
   const label = document.getElementById('inst-trigger-label');
   if (label) {
-    if (count === 1) {
+    if (count === 0) {
+      label.textContent = 'Select instruments to scan...';
+      label.style.color = 'var(--text3)';
+    } else if (count === 1) {
       const inst = INSTRUMENT_META[selectedInstruments[0]];
       label.textContent = inst ? `${inst.label} — ${inst.name}` : selectedInstruments[0];
+      label.style.color = '';
     } else {
       label.textContent = `${count} instruments selected`;
+      label.style.color = '';
     }
   }
 
@@ -3218,8 +3422,102 @@ function updateRisk() {
 }
 
 // ═══════════════════════════════════════════
-// LOT SIZE CALCULATOR
+// TRADE BEHAVIOUR REVIEW (Risk Calculator)
 // ═══════════════════════════════════════════
+async function refreshTradeBehaviourReview() {
+  const card = document.getElementById('trade-behaviour-content');
+  const btn  = document.getElementById('behaviour-refresh-btn');
+  if (!card) return;
+
+  // Combine sim trades and journal trades
+  const simTrades  = JSON.parse(localStorage.getItem('wm_sim_trades') || '[]');
+  const allTrades  = [...trades, ...simTrades];
+
+  if (!allTrades.length) {
+    card.innerHTML = '<div style="font-size:12px;color:var(--text3);line-height:1.6;">No trades logged yet. Use Sim Trader or log trades in your journal to get a behavioural analysis here.</div>';
+    return;
+  }
+
+  if (!apiKey) {
+    // Offline summary without API
+    const wins   = allTrades.filter(t => t.pnl > 0).length;
+    const losses = allTrades.filter(t => t.pnl < 0).length;
+    const pnl    = allTrades.reduce((s,t) => s + t.pnl, 0);
+    const lots   = allTrades.map(t => t.lot || 0);
+    const avgLot = lots.length ? (lots.reduce((a,b) => a+b,0)/lots.length).toFixed(2) : '—';
+    // Detect lot escalation after losses
+    let escalationDetected = false;
+    for (let i = 1; i < allTrades.length; i++) {
+      if (allTrades[i-1].pnl < 0 && allTrades[i].lot > allTrades[i-1].lot * 1.5) {
+        escalationDetected = true; break;
+      }
+    }
+    card.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div style="background:var(--bg2);border-radius:6px;padding:8px;text-align:center;">
+          <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--green);">${wins}</div>
+          <div style="font-family:var(--font-mono);font-size:7px;color:var(--text3);margin-top:2px;">WINS</div>
+        </div>
+        <div style="background:var(--bg2);border-radius:6px;padding:8px;text-align:center;">
+          <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--red);">${losses}</div>
+          <div style="font-family:var(--font-mono);font-size:7px;color:var(--text3);margin-top:2px;">LOSSES</div>
+        </div>
+        <div style="background:var(--bg2);border-radius:6px;padding:8px;text-align:center;">
+          <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:${pnl>=0?'var(--green)':'var(--red)'};">${pnl>=0?'+':''}$${pnl.toFixed(0)}</div>
+          <div style="font-family:var(--font-mono);font-size:7px;color:var(--text3);margin-top:2px;">NET P&L</div>
+        </div>
+      </div>
+      ${escalationDetected ? '<div style="background:var(--red-dim);border-radius:6px;padding:10px;margin-bottom:8px;font-size:12px;color:var(--text2);line-height:1.55;">⚠️ <strong style="color:var(--red);">Size escalation after loss detected.</strong> You increased lot size after a losing trade. This is a high-risk pattern. Keep lot size fixed regardless of previous results.</div>' : ''}
+      <div style="font-size:11px;color:var(--text3);">Avg lot size: <strong style="color:var(--text2);">${avgLot}</strong> · Add your analysis key in Settings for a full behavioural report.</div>`;
+    return;
+  }
+
+  card.innerHTML = '<div class="pulse" style="font-family:var(--font-mono);font-size:11px;color:var(--text3);">Analysing your trading behaviour...</div>';
+  if (btn) btn.disabled = true;
+
+  const recent = allTrades.slice(0, 20);
+  const prompt = `Analyse this trader's recent behaviour across ${recent.length} trades. Be honest, direct, constructive. Focus on patterns, psychology, and risk management.
+
+TRADES (newest first):
+${JSON.stringify(recent.map(t=>({pair:t.pair||t.instrument,dir:t.dir||t.direction,lot:t.lot||t.lotSize,pnl:t.pnl,tf:t.tf||t.timeframe,notes:t.notes||''})))}
+
+Overall: ${allTrades.length} total trades, P&L: $${allTrades.reduce((s,t)=>s+t.pnl,0).toFixed(2)}, Win rate: ${Math.round(allTrades.filter(t=>t.pnl>0).length/allTrades.length*100)}%
+
+Respond ONLY with raw JSON:
+{"summary":"2-3 sentence overview of their trading behaviour","riskPattern":"What their risk/sizing behaviour shows","psychologyPattern":"Emotional or psychological tendencies detected","lotScaling":"Analysis of how they scale positions — any martingale or escalation?","topStrength":"What they do well","topRisk":"The single biggest risk in their current approach","recommendation":"Most important thing to change or maintain"}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+      body:JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:600,
+        system:'You are an elite trading coach. Analyse trader behaviour. Respond only with JSON.',
+        messages:[{role:'user',content:prompt}] })
+    });
+    const data = await res.json();
+    const text = data.content?.find(b=>b.type==='text')?.text || '';
+    const r = extractJSON(text);
+    if (!r) throw new Error('No analysis data');
+
+    card.innerHTML = `
+      <div style="margin-bottom:10px;">
+        <div style="font-family:var(--font-mono);font-size:8px;color:var(--blue);letter-spacing:1px;margin-bottom:4px;">📊 OVERVIEW</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.55;">${r.summary||''}</div>
+      </div>
+      ${r.lotScaling?`<div style="margin-bottom:10px;background:var(--bg2);border-radius:6px;padding:10px;"><div style="font-family:var(--font-mono);font-size:8px;color:var(--gold);letter-spacing:1px;margin-bottom:4px;">📐 POSITION SIZING</div><div style="font-size:12px;color:var(--text2);line-height:1.55;">${r.lotScaling}</div></div>`:''}
+      ${r.psychologyPattern?`<div style="margin-bottom:10px;"><div style="font-family:var(--font-mono);font-size:8px;color:var(--purple);letter-spacing:1px;margin-bottom:4px;">🧠 PSYCHOLOGY</div><div style="font-size:12px;color:var(--text2);line-height:1.55;">${r.psychologyPattern}</div></div>`:''}
+      ${r.topRisk?`<div style="margin-bottom:10px;background:var(--red-dim);border-radius:6px;padding:10px;"><div style="font-family:var(--font-mono);font-size:8px;color:var(--red);letter-spacing:1px;margin-bottom:4px;">⚠️ KEY RISK</div><div style="font-size:12px;color:var(--text2);line-height:1.55;">${r.topRisk}</div></div>`:''}
+      ${r.topStrength?`<div style="margin-bottom:10px;background:var(--green-dim);border-radius:6px;padding:10px;"><div style="font-family:var(--font-mono);font-size:8px;color:var(--green);letter-spacing:1px;margin-bottom:4px;">✅ STRENGTH</div><div style="font-size:12px;color:var(--text2);line-height:1.55;">${r.topStrength}</div></div>`:''}
+      ${r.recommendation?`<div style="background:var(--gold-dim);border-radius:6px;padding:10px;"><div style="font-family:var(--font-mono);font-size:8px;color:var(--gold);letter-spacing:1px;margin-bottom:4px;">🎯 RECOMMENDATION</div><div style="font-size:12px;color:var(--text2);line-height:1.55;">${r.recommendation}</div></div>`:''}
+      <div style="font-family:var(--font-mono);font-size:8px;color:var(--text4);margin-top:8px;">Based on ${allTrades.length} trades (journal + sim)</div>`;
+  } catch(e) {
+    card.innerHTML = `<div style="font-size:11px;color:var(--red);">Analysis failed: ${e.message}</div>`;
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+
 function calcLot() {
   const bal  = parseFloat(document.getElementById('calc-balance').value)||0;
   const risk = parseFloat(document.getElementById('calc-risk').value)||0;
@@ -3334,7 +3632,7 @@ function renderTrades() {
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="font-family:var(--font-display);font-size:16px;font-weight:800;color:${pc};">${t.pnl>=0?'+':''}$${t.pnl.toFixed(2)}</span>
-          <button onclick="reviewTrade(${t.id})" style="background:none;border:1px solid var(--border2);border-radius:5px;color:var(--text3);cursor:pointer;font-size:10px;padding:2px 8px;font-family:var(--font-mono);">AI Review</button>
+          <button onclick="reviewTrade(${t.id})" style="background:none;border:1px solid var(--border2);border-radius:5px;color:var(--text3);cursor:pointer;font-size:10px;padding:2px 8px;font-family:var(--font-mono);">Review</button>
           <button onclick="deleteTrade(${t.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:2px;">✕</button>
         </div>
       </div>
@@ -3643,7 +3941,7 @@ async function runScan() {
     marketData += '\nAll live data sources unavailable. Provide analysis based on known market structure and flag data limitations.';
   }
 
-  btn.innerHTML = '<div class="spinner" style="color:#000;"></div> AI analysing...';
+  btn.innerHTML = '<div class="spinner" style="color:#000;"></div> Analysing...';
 
   const prompt = `Analyse these pairs: ${pairs.join(', ')}
 Account: $${bal} balance | ${risk}% risk per trade | Max risk: $${riskAmt}
@@ -3713,8 +4011,16 @@ function buildHeatmap() {
   const pairsEl = document.getElementById('heatmap-pairs');
   if (!grid) return;
 
-  if (!trades.length) {
-    grid.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:20px 0;">No trades in journal yet. Log some trades to see your heatmap.</div>';
+  const useSim     = document.getElementById('hm-sim')?.checked !== false;
+  const useJournal = document.getElementById('hm-journal')?.checked === true;
+
+  // Combine selected sources
+  const simTrades = useSim ? (JSON.parse(localStorage.getItem('wm_sim_trades')||'[]').map(t=>({...t, pair: t.inst||t.pair}))) : [];
+  const journalTrades = useJournal ? trades : [];
+  const allTrades = [...simTrades, ...journalTrades];
+
+  if (!allTrades.length) {
+    grid.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:20px 0;">No trades yet. Log trades or use Sim Trader to see your heatmap.</div>';
     return;
   }
 
@@ -3728,8 +4034,8 @@ function buildHeatmap() {
 
   const pairStats = {};
 
-  trades.forEach(t => {
-    const date = new Date(t.date);
+  allTrades.forEach(t => {
+    const date = new Date(t.date || t.openTime || t.closeTime || Date.now());
     const dayIdx = date.getDay(); // 0=Sun
     const dayNames = ['','Mon','Tue','Wed','Thu','Fri',''];
     const day = dayNames[dayIdx];
@@ -3740,10 +4046,11 @@ function buildHeatmap() {
       matrix[day][sessionGuess].push(t.pnl);
     }
     // Pair stats
-    if (!pairStats[t.pair]) pairStats[t.pair] = { pnl:0, count:0, wins:0 };
-    pairStats[t.pair].pnl += t.pnl;
-    pairStats[t.pair].count++;
-    if (t.pnl > 0) pairStats[t.pair].wins++;
+    const pairKey = t.pair || t.inst || 'Unknown';
+    if (!pairStats[pairKey]) pairStats[pairKey] = { pnl:0, count:0, wins:0 };
+    pairStats[pairKey].pnl += t.pnl;
+    pairStats[pairKey].count++;
+    if (t.pnl > 0) pairStats[pairKey].wins++;
   });
 
   const heatClass = (vals) => {
@@ -3781,7 +4088,7 @@ function buildHeatmap() {
   grid.innerHTML = html;
 
   // Stats
-  const allPnls = trades.map(t => t.pnl);
+  const allPnls = allTrades.map(t => t.pnl);
   const bestDay = days.reduce((best, d) => {
     const sum = sessions.flatMap(s => matrix[d][s]).reduce((a,b) => a+b, 0);
     return sum > best.sum ? {day:d, sum} : best;
@@ -3813,7 +4120,7 @@ function buildHeatmap() {
 }
 
 // ═══════════════════════════════════════════
-// AI TRADE REVIEW
+// TRADE REVIEW
 // ═══════════════════════════════════════════
 async function reviewTrade(id) {
   const trade = trades.find(t => t.id === id);
@@ -3823,7 +4130,7 @@ async function reviewTrade(id) {
   if (el.style.display === 'block') { el.style.display = 'none'; return; }
 
   el.style.display = 'block';
-  el.innerHTML = '<div style="font-family:var(--font-mono);font-size:11px;color:var(--text3);padding:10px 0;" class="pulse">AI reviewing trade...</div>';
+  el.innerHTML = '<div style="font-family:var(--font-mono);font-size:11px;color:var(--text3);padding:10px 0;" class="pulse">Reviewing trade...</div>';
 
   // Build context from all trades for pattern detection
   const recentLosses = trades.filter(t => t.pnl < 0).slice(0, 5);
@@ -3866,7 +4173,7 @@ Respond ONLY with raw JSON:
         <div class="review-score" style="background:${gradeColor}22;border:2px solid ${gradeColor};color:${gradeColor};">${review.grade || '?'}</div>
         <div>
           <div style="font-family:var(--font-display);font-size:16px;font-weight:800;color:${gradeColor};">Score: ${review.score}/100</div>
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1px;">AI TRADE REVIEW</div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1px;">TRADE REVIEW</div>
         </div>
       </div>
       ${review.technicalAssessment ? `<div style="margin-bottom:10px;"><div style="font-family:var(--font-mono);font-size:8px;color:var(--blue);letter-spacing:1px;margin-bottom:4px;">📊 TECHNICAL</div><div style="font-size:12px;color:var(--text2);line-height:1.55;">${review.technicalAssessment}</div></div>` : ''}
@@ -4038,9 +4345,9 @@ async function fetchNewsCalendar() {
     }));
     renderNewsCalendar('all');
   } catch(e) {
-    // Fallback: use AI to generate today's key events
+    // Fallback: fetch today's key events
     if (apiKey) {
-      body.innerHTML = '<div style="font-size:11px;color:var(--text3);padding:8px 0;" class="pulse">Live feed unavailable — asking AI for key events today...</div>';
+      body.innerHTML = '<div style="font-size:11px;color:var(--text3);padding:8px 0;" class="pulse">Live feed unavailable — loading key events...</div>';
       try {
         const res2 = await fetch('https://api.anthropic.com/v1/messages', {
           method:'POST',
@@ -4153,7 +4460,7 @@ async function analyseScreenshot() {
     if (!analysis) throw new Error('No analysis returned');
 
     resultEl.innerHTML = `<div class="card">
-      <div class="card-label">📸 AI Chart Analysis</div>
+      <div class="card-label">📸 Chart Analysis</div>
       <div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">${analysis}</div>
       <div style="margin-top:12px;">
         <button class="voice-btn" onclick="speakText(${JSON.stringify(analysis)}.replace(/[*#]/g,''))">
@@ -4777,7 +5084,15 @@ function calNextMonth() {
 }
 function calSelectDate(y, m, d) {
   calSelected = new Date(y, m, d);
-  renderCalendarGrid();
+  calSelected.setHours(0,0,0,0);
+  // Remove selected class from all days
+  document.querySelectorAll('.cal-day.selected').forEach(el => el.classList.remove('selected'));
+  // Add selected class only to clicked day
+  const allDays = document.querySelectorAll('#cal-grid .cal-day:not(.other-month)');
+  allDays.forEach(el => {
+    const num = parseInt(el.querySelector('.cal-day-num')?.textContent);
+    if (num === d) el.classList.add('selected');
+  });
   loadEventsForDate(calSelected);
 }
 function dateStr(date) {
@@ -4797,7 +5112,7 @@ async function loadEventsForDate(date) {
     const today = new Date(); today.setHours(0,0,0,0);
     const isTdy = date.getTime() === today.getTime();
     label.textContent = isTdy ? "Today's Events" :
-      date.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' });
+      date.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'long' });
   }
   if (body) body.innerHTML = '<div class="pulse" style="font-family:var(--font-mono);font-size:11px;color:var(--text3);padding:12px 0;">Fetching events...</div>';
 
@@ -4810,32 +5125,98 @@ async function loadEventsForDate(date) {
 
   const events = [];
 
-  // Fetch Tradays economic calendar
+  // ── Source 1: ForexFactory calendar (via CORS proxy) ─────────────────────
+  let ffLoaded = false;
   try {
-    const from = ds + 'T00:00:00.000Z';
-    const to   = ds + 'T23:59:59.000Z';
-    const url  = 'https://economic-calendar.tradingview.com/events?from=' + from + '&to=' + to +
-                 '&countries=US,GB,EU,JP,AU,CA,CH,CN,NZ,DE,FR&minImportance=-1';
-    const res = await fetch(url);
+    // ForexFactory uses week-based URLs; find the Monday of the given week
+    const ffDate = new Date(date);
+    const dayOfWeek = ffDate.getDay() === 0 ? 6 : ffDate.getDay() - 1; // Mon=0
+    ffDate.setDate(ffDate.getDate() - dayOfWeek);
+    const ffYear  = ffDate.getFullYear();
+    const ffMonth = String(ffDate.getMonth() + 1).padStart(2, '0');
+    const ffDay   = String(ffDate.getDate()).padStart(2, '0');
+    const ffUrl   = `https://www.forexfactory.com/calendar.php?week=${ffYear}.${ffMonth}.${ffDay}`;
+    // Use a reliable CORS proxy
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(ffUrl)}`;
+    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
     if (res.ok) {
-      const data = await res.json();
-      (data.result || []).forEach(ev => {
-        const title = ev.title || ev.indicator || 'Economic Event';
-        const imp   = ev.importance >= 2 ? 'high' : ev.importance === 1 ? 'medium' : 'low';
+      const html = await res.text();
+      // Parse the HTML table rows
+      const parser  = new DOMParser();
+      const doc     = parser.parseFromString(html, 'text/html');
+      const rows    = doc.querySelectorAll('tr.calendar__row');
+      let lastTime  = '';
+      let lastDate  = null;
+      rows.forEach(row => {
+        // Skip header rows
+        if (row.classList.contains('calendar__row--no-border')) return;
+        // Date cell
+        const dateCell = row.querySelector('.calendar__date');
+        if (dateCell && dateCell.textContent.trim()) {
+          lastDate = dateCell.textContent.trim();
+        }
+        // Time cell
+        const timeCell = row.querySelector('.calendar__time');
+        if (timeCell && timeCell.textContent.trim()) lastTime = timeCell.textContent.trim();
+        // Currency / country
+        const currCell  = row.querySelector('.calendar__currency');
+        const titleCell = row.querySelector('.calendar__event-title');
+        const impCell   = row.querySelector('.calendar__impact span');
+        if (!titleCell) return;
+        const title    = titleCell.textContent.trim();
+        if (!title) return;
+        // Impact from icon class
+        const impClass = impCell ? impCell.className : '';
+        const imp = impClass.includes('high') ? 'high'
+                  : impClass.includes('medium') ? 'medium'
+                  : impClass.includes('low') ? 'low' : 'low';
+        const currency = currCell ? currCell.textContent.trim() : '';
+        // Map currency to country
+        const currencyToCountry = { USD:'US', EUR:'EU', GBP:'GB', JPY:'JP', AUD:'AU',
+          CAD:'CA', CHF:'CH', CNY:'CN', NZD:'NZ', ALL:'ALL' };
+        const country = currencyToCountry[currency] || currency;
+        // Filter to the specific date selected
         const isSpeech = SPEAKER_KEYWORDS.some(k => title.toLowerCase().includes(k));
         events.push({
-          time:    new Date(ev.date).toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',timeZone:'UTC'}) + ' UTC',
+          time:    (lastTime || 'All Day') + ' ET',
           title,
-          country: ev.country || 'ALL',
+          country,
           impact:  isSpeech ? 'speech' : imp,
-          actual:  ev.actual,
-          forecast:ev.forecast,
-          previous:ev.previous,
-          source:  'Tradays'
+          source:  'ForexFactory'
         });
       });
+      if (events.length > 0) ffLoaded = true;
     }
-  } catch(e) { console.warn('Tradays:', e.message); }
+  } catch(e) { console.warn('ForexFactory:', e.message); }
+
+  // ── Source 2: TradingView economic calendar (fallback) ────────────────────
+  if (!ffLoaded) {
+    try {
+      const from = ds + 'T00:00:00.000Z';
+      const to   = ds + 'T23:59:59.000Z';
+      const url  = 'https://economic-calendar.tradingview.com/events?from=' + from + '&to=' + to +
+                   '&countries=US,GB,EU,JP,AU,CA,CH,CN,NZ,DE,FR&minImportance=-1';
+      const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      if (res.ok) {
+        const data = await res.json();
+        (data.result || []).forEach(ev => {
+          const title = ev.title || ev.indicator || 'Economic Event';
+          const imp   = ev.importance >= 2 ? 'high' : ev.importance === 1 ? 'medium' : 'low';
+          const isSpeech = SPEAKER_KEYWORDS.some(k => title.toLowerCase().includes(k));
+          events.push({
+            time:    new Date(ev.date).toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',timeZone:'UTC'}) + ' UTC',
+            title,
+            country: ev.country || 'ALL',
+            impact:  isSpeech ? 'speech' : imp,
+            actual:  ev.actual,
+            forecast:ev.forecast,
+            previous:ev.previous,
+            source:  'TradingView'
+          });
+        });
+      }
+    } catch(e) { console.warn('TradingView calendar:', e.message); }
+  }
 
   // Add curated recurring events (central bank schedule, known political events)
   const curatedEvents = getCuratedEvents(ds);
@@ -5081,10 +5462,302 @@ async function fetchFinnhubNews(category) {
   }
 }
 
+
 // ═══════════════════════════════════════════
-// CALENDAR FILTER
+// SIM TRADER ENGINE
 // ═══════════════════════════════════════════
-// (filterCalEvents defined above)
+let simAccount = JSON.parse(localStorage.getItem('wm_sim_account') || 'null') || {
+  balance: 10000, startBalance: 10000
+};
+let simPositions = JSON.parse(localStorage.getItem('wm_sim_positions') || '[]');
+let simHistory   = JSON.parse(localStorage.getItem('wm_sim_trades')    || '[]');
+let simDir = 'BUY';
+let simPriceTimer = null;
+
+function simSave() {
+  localStorage.setItem('wm_sim_account',   JSON.stringify(simAccount));
+  localStorage.setItem('wm_sim_positions', JSON.stringify(simPositions));
+  localStorage.setItem('wm_sim_trades',    JSON.stringify(simHistory));
+}
+
+function simGetPrice(instrument) {
+  return livePriceCache[instrument] || prevPrices[instrument] || null;
+}
+
+function simUpdatePrice() {
+  const inst  = document.getElementById('sim-instrument')?.value;
+  const price = simGetPrice(inst);
+  const el    = document.getElementById('sim-market-price');
+  if (el) el.textContent = price ? price.toFixed(['BTCUSD','ETHUSD','US30','SPX500','NAS100','XAUUSD','XAGUSD'].includes(inst) ? 2 : 5) : '—';
+  simCalcRisk();
+}
+
+function simSetDir(dir) {
+  simDir = dir;
+  const buyBtn  = document.getElementById('sim-buy-btn');
+  const sellBtn = document.getElementById('sim-sell-btn');
+  const placeBtn= document.getElementById('sim-place-btn');
+  if (buyBtn) {
+    buyBtn.style.background  = dir === 'BUY'  ? 'var(--green-dim)'  : 'none';
+    buyBtn.style.color       = dir === 'BUY'  ? 'var(--green)'      : 'var(--text3)';
+    sellBtn.style.background = dir === 'SELL' ? 'var(--red-dim)'    : 'none';
+    sellBtn.style.color      = dir === 'SELL' ? 'var(--red)'        : 'var(--text3)';
+  }
+  if (placeBtn) {
+    placeBtn.style.background = dir === 'BUY'
+      ? 'linear-gradient(135deg,#00E87A,#00C860)'
+      : 'linear-gradient(135deg,#FF3D5A,#E0002B)';
+    placeBtn.textContent = dir === 'BUY' ? '▲ PLACE BUY' : '▼ PLACE SELL';
+  }
+}
+
+function simToggleLimit() {
+  const type = document.getElementById('sim-order-type')?.value;
+  const row  = document.getElementById('sim-limit-row');
+  if (row) row.style.display = type === 'market' ? 'none' : 'block';
+}
+
+function simCalcRisk() {
+  const inst     = document.getElementById('sim-instrument')?.value;
+  const lots     = parseFloat(document.getElementById('sim-lots')?.value) || 0.01;
+  const tp       = parseFloat(document.getElementById('sim-tp')?.value)   || 0;
+  const sl       = parseFloat(document.getElementById('sim-sl')?.value)   || 0;
+  const leverage = parseFloat(document.getElementById('sim-leverage')?.value) || 100;
+  const price    = simGetPrice(inst) || 0;
+
+  // Pip value per lot (approx)
+  const pipVal = inst === 'XAUUSD' ? 100 : inst === 'BTCUSD' ? 1 : inst === 'ETHUSD' ? 1 :
+    ['US30','SPX500','NAS100'].includes(inst) ? 1 : 10;
+
+  const margin = price ? ((price * lots * 100000) / leverage / 1000).toFixed(2) : '—';
+  const slDist = sl && price ? Math.abs(price - sl) : 0;
+  const tpDist = tp && price ? Math.abs(tp - price) : 0;
+  const maxRisk = slDist ? (slDist * pipVal * lots).toFixed(2) : '—';
+  const rr = slDist && tpDist ? '1:' + (tpDist / slDist).toFixed(2) : '—';
+
+  const marginEl  = document.getElementById('sim-margin');
+  const maxRiskEl = document.getElementById('sim-max-risk');
+  const rrEl      = document.getElementById('sim-rr-display');
+  if (marginEl)  marginEl.textContent  = margin !== '—' ? '$' + margin : '—';
+  if (maxRiskEl) maxRiskEl.textContent = maxRisk !== '—' ? '$' + maxRisk : '—';
+  if (rrEl)      rrEl.textContent      = rr;
+}
+
+function simCalcLotFromRisk() {
+  const riskAmt  = parseFloat(document.getElementById('sim-risk-amt')?.value) || 0;
+  const sl       = parseFloat(document.getElementById('sim-sl')?.value)       || 0;
+  const inst     = document.getElementById('sim-instrument')?.value;
+  const price    = simGetPrice(inst) || 0;
+  if (!riskAmt || !sl || !price) return;
+  const pipVal = inst === 'XAUUSD' ? 100 : inst === 'BTCUSD' ? 1 : 10;
+  const slDist = Math.abs(price - sl);
+  if (!slDist) return;
+  const lots = Math.max(0.01, Math.floor((riskAmt / (slDist * pipVal)) * 100) / 100);
+  const lotsEl = document.getElementById('sim-lots');
+  if (lotsEl) lotsEl.value = lots.toFixed(2);
+  simCalcRisk();
+}
+
+function simPlaceOrder() {
+  const inst      = document.getElementById('sim-instrument').value;
+  const lots      = parseFloat(document.getElementById('sim-lots').value)     || 0.01;
+  const tp        = parseFloat(document.getElementById('sim-tp').value)        || null;
+  const sl        = parseFloat(document.getElementById('sim-sl').value)        || null;
+  const leverage  = parseFloat(document.getElementById('sim-leverage').value)  || 100;
+  const orderType = document.getElementById('sim-order-type').value;
+  const limitPx   = parseFloat(document.getElementById('sim-entry-price')?.value) || null;
+
+  const price = orderType === 'market'
+    ? (simGetPrice(inst) || 0)
+    : (limitPx || simGetPrice(inst) || 0);
+
+  if (!price) { toast('⚠️ No live price — ensure Twelve Data or Binance is connected'); return; }
+
+  const pipVal = inst === 'XAUUSD' ? 100 : inst === 'BTCUSD' ? 1 : inst === 'ETHUSD' ? 1 :
+    ['US30','SPX500','NAS100'].includes(inst) ? 1 : 10;
+  const margin = (price * lots * 100000) / leverage / 1000;
+
+  if (margin > simAccount.balance) {
+    toast('⚠️ Insufficient margin. Add funds or reduce lot size.');
+    return;
+  }
+
+  const pos = {
+    id: Date.now(), inst, dir: simDir, lots, entryPrice: price,
+    tp: tp || null, sl: sl || null, leverage, pipVal,
+    openTime: new Date().toLocaleString(), status: 'open',
+    type: orderType
+  };
+  simPositions.push(pos);
+  simSave();
+  renderSimPositions();
+  simUpdateAccount();
+  toast(`✅ ${simDir} ${lots} lots ${inst} @ ${price.toFixed(2)}`);
+}
+
+function simClosePosition(id) {
+  const idx = simPositions.findIndex(p => p.id === id);
+  if (idx === -1) return;
+  const pos   = simPositions[idx];
+  const price = simGetPrice(pos.inst) || pos.entryPrice;
+
+  const pipVal = pos.pipVal || 10;
+  const priceDiff = pos.dir === 'BUY' ? price - pos.entryPrice : pos.entryPrice - price;
+  const pnl = priceDiff * pipVal * pos.lots;
+
+  const closed = { ...pos, closePrice: price, pnl, closeTime: new Date().toLocaleString(), status: 'closed' };
+  simHistory.unshift(closed);
+  simPositions.splice(idx, 1);
+  simAccount.balance += pnl;
+  if (simAccount.balance <= 0) { simAccount.balance = 0; toast('⚠️ Account balance exhausted. Add funds to continue.'); }
+  simSave();
+  renderSimPositions();
+  renderSimHistory();
+  simUpdateAccount();
+  buildHeatmap();
+  toast(`${pnl >= 0 ? '✅' : '❌'} Closed ${pos.dir} ${pos.inst}: ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`);
+}
+
+function simCloseAll() {
+  if (!simPositions.length) return;
+  [...simPositions].forEach(p => simClosePosition(p.id));
+}
+
+function simUpdateAccount() {
+  const openPnl = simPositions.reduce((s, p) => {
+    const price = simGetPrice(p.inst) || p.entryPrice;
+    const priceDiff = p.dir === 'BUY' ? price - p.entryPrice : p.entryPrice - price;
+    return s + priceDiff * (p.pipVal || 10) * p.lots;
+  }, 0);
+  const equity   = simAccount.balance + openPnl;
+  const totalPnl = simAccount.balance - simAccount.startBalance + openPnl;
+
+  const balEl  = document.getElementById('sim-balance-display');
+  const eqEl   = document.getElementById('sim-equity-display');
+  const opEl   = document.getElementById('sim-pnl-display');
+  const totEl  = document.getElementById('sim-total-pnl-display');
+
+  if (balEl) { balEl.textContent = '$' + simAccount.balance.toFixed(2); balEl.style.color = simAccount.balance >= simAccount.startBalance ? 'var(--green)' : 'var(--red)'; }
+  if (eqEl)  { eqEl.textContent  = '$' + equity.toFixed(2);   eqEl.style.color  = equity  >= simAccount.startBalance ? 'var(--green)' : 'var(--red)'; }
+  if (opEl)  { opEl.textContent  = (openPnl >= 0 ? '+' : '') + '$' + openPnl.toFixed(2);  opEl.style.color  = openPnl  >= 0 ? 'var(--green)' : 'var(--red)'; }
+  if (totEl) { totEl.textContent = (totalPnl >= 0 ? '+' : '') + '$' + totalPnl.toFixed(2); totEl.style.color = totalPnl >= 0 ? 'var(--green)' : 'var(--red)'; }
+}
+
+function simAddFunds() {
+  const amt = prompt('Enter amount to add ($):');
+  const n   = parseFloat(amt);
+  if (!n || n <= 0) return;
+  simAccount.balance    += n;
+  simAccount.startBalance += n;
+  simSave();
+  simUpdateAccount();
+  toast(`✅ Added $${n.toFixed(2)} to sim account`);
+}
+
+function simResetAccount() {
+  if (!confirm('Reset sim account to $10,000? All positions and history will be cleared.')) return;
+  simPositions = [];
+  simHistory   = [];
+  simAccount   = { balance: 10000, startBalance: 10000 };
+  simSave();
+  renderSimPositions();
+  renderSimHistory();
+  simUpdateAccount();
+  toast('✅ Sim account reset to $10,000');
+}
+
+function simClearHistory() {
+  if (!confirm('Clear trade history?')) return;
+  simHistory = [];
+  simSave();
+  renderSimHistory();
+}
+
+function renderSimPositions() {
+  const el = document.getElementById('sim-open-positions');
+  if (!el) return;
+  if (!simPositions.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon" style="font-size:24px;">📊</div><div class="empty-text" style="font-size:11px;">No open positions</div></div>';
+    return;
+  }
+  el.innerHTML = simPositions.map(p => {
+    const price    = simGetPrice(p.inst) || p.entryPrice;
+    const priceDiff= p.dir === 'BUY' ? price - p.entryPrice : p.entryPrice - price;
+    const pnl      = priceDiff * (p.pipVal || 10) * p.lots;
+    const pnlColor = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+    const dp       = ['BTCUSD','ETHUSD','US30','SPX500','NAS100','XAUUSD','XAGUSD'].includes(p.inst) ? 2 : 5;
+    return `<div style="background:var(--bg2);border-radius:8px;padding:12px 14px;margin-bottom:8px;border-left:3px solid ${p.dir==='BUY'?'var(--green)':'var(--red)'};">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="badge badge-${p.dir.toLowerCase()}">${p.dir}</span>
+          <span style="font-family:var(--font-mono);font-size:12px;font-weight:700;">${p.inst}</span>
+          <span style="font-family:var(--font-mono);font-size:10px;color:var(--text3);">${p.lots} lots · 1:${p.leverage}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-family:var(--font-display);font-size:16px;font-weight:800;color:${pnlColor};">${pnl>=0?'+':''}$${pnl.toFixed(2)}</span>
+          <button onclick="simClosePosition(${p.id})" style="background:var(--red-dim);border:1px solid var(--red);border-radius:5px;color:var(--red);font-family:var(--font-mono);font-size:9px;padding:3px 10px;cursor:pointer;">Close</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:14px;font-family:var(--font-mono);font-size:9px;color:var(--text3);">
+        <span>Entry: <strong style="color:var(--text2);">${p.entryPrice.toFixed(dp)}</strong></span>
+        <span>Now: <strong style="color:var(--text2);">${price.toFixed(dp)}</strong></span>
+        ${p.sl ? `<span>SL: <strong style="color:var(--red);">${p.sl.toFixed(dp)}</strong></span>` : ''}
+        ${p.tp ? `<span>TP: <strong style="color:var(--green);">${p.tp.toFixed(dp)}</strong></span>` : ''}
+      </div>
+      <div style="font-family:var(--font-mono);font-size:8px;color:var(--text4);margin-top:4px;">${p.openTime}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderSimHistory() {
+  const el      = document.getElementById('sim-history');
+  const statsEl = document.getElementById('sim-history-stats');
+  if (!el) return;
+  if (!simHistory.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon" style="font-size:24px;">📋</div><div class="empty-text" style="font-size:11px;">No closed trades yet</div></div>';
+    if (statsEl) statsEl.textContent = '';
+    return;
+  }
+  const wins = simHistory.filter(t => t.pnl > 0).length;
+  const wr   = Math.round(wins / simHistory.length * 100);
+  const pnl  = simHistory.reduce((s, t) => s + t.pnl, 0);
+  if (statsEl) statsEl.innerHTML = `<span style="color:${wr>=50?'var(--green)':'var(--red)'};">${wr}% WR</span> · <span style="color:${pnl>=0?'var(--green)':'var(--red)'};">${pnl>=0?'+':''}$${pnl.toFixed(2)}</span>`;
+
+  el.innerHTML = simHistory.slice(0, 30).map(t => {
+    const pc = t.pnl >= 0 ? 'var(--green)' : 'var(--red)';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;">
+      <div style="display:flex;align-items:center;gap:7px;">
+        <span class="badge badge-${t.dir.toLowerCase()}">${t.dir}</span>
+        <span style="font-family:var(--font-mono);font-size:11px;color:var(--text2);">${t.inst}</span>
+        <span style="font-family:var(--font-mono);font-size:10px;color:var(--text3);">${t.lots}L</span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span style="font-family:var(--font-mono);font-size:10px;color:var(--text3);">${t.entryPrice?.toFixed?.(2) || '—'} → ${t.closePrice?.toFixed?.(2) || '—'}</span>
+        <span style="font-family:var(--font-mono);font-weight:700;color:${pc};">${t.pnl>=0?'+':''}$${t.pnl.toFixed(2)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function initSimTrader() {
+  simUpdateAccount();
+  renderSimPositions();
+  renderSimHistory();
+  simUpdatePrice();
+  simSetDir('BUY');
+  // Refresh open position P&L every 5 seconds
+  clearInterval(simPriceTimer);
+  simPriceTimer = setInterval(() => {
+    if (document.getElementById('tab-simtrader')?.classList.contains('active')) {
+      simUpdatePrice();
+      renderSimPositions();
+      simUpdateAccount();
+    }
+  }, 5000);
+}
+
+// Mobile nav - add Sim Trader
+
 
 // ═══════════════════════════════════════════
 // FINNHUB KEY MANAGEMENT
