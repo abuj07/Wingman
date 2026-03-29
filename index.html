@@ -885,11 +885,12 @@ select.input option { background:#111116; color:#E8E8F0; }
 .cal-nav-btn:hover { border-color:var(--gold); color:var(--gold); }
 .cal-month-label { font-family:var(--font-display); font-size:14px; font-weight:800; }
 
-/* Event list */
+/* Event list — compact single-line rows */
 .cal-event-row {
-  display:flex; gap:10px; padding:9px 12px; margin-bottom:5px;
-  border-radius:var(--r-sm); border-left:3px solid; align-items:flex-start;
+  display:flex; gap:8px; padding:6px 10px; margin-bottom:3px;
+  border-radius:var(--r-sm); border-left:3px solid; align-items:center;
   background:var(--bg2); cursor:pointer; transition:background 0.1s;
+  min-height:0;
 }
 .cal-event-row:hover { background:var(--bg3); }
 .cal-event-high   { border-color:var(--red); }
@@ -898,22 +899,20 @@ select.input option { background:#111116; color:#E8E8F0; }
 .cal-event-speech { border-color:var(--purple); }
 .cal-event-time {
   font-family:var(--font-mono); font-size:9px; color:var(--text3);
-  min-width:52px; padding-top:2px; flex-shrink:0;
+  min-width:44px; flex-shrink:0; white-space:nowrap;
 }
-.cal-event-body { flex:1; min-width:0; }
-.cal-event-title { font-size:12px; color:var(--text); margin-bottom:2px; line-height:1.35; }
-.cal-event-meta { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+.cal-event-body { flex:1; min-width:0; display:flex; align-items:center; gap:6px; flex-wrap:nowrap; overflow:hidden; }
+.cal-event-title { font-size:11px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; }
+.cal-event-meta { display:flex; gap:5px; align-items:center; flex-shrink:0; }
 .cal-event-country {
   font-family:var(--font-mono); font-size:8px; color:var(--text3); letter-spacing:1px;
 }
-.cal-event-actual {
-  font-family:var(--font-mono); font-size:9px; font-weight:700;
-}
+.cal-event-actual { font-family:var(--font-mono); font-size:9px; font-weight:700; }
 .cal-event-actual.beat { color:var(--green); }
 .cal-event-actual.miss { color:var(--red); }
 .cal-impact-badge {
   font-family:var(--font-mono); font-size:7px; font-weight:700;
-  padding:1px 6px; border-radius:3px; letter-spacing:1px;
+  padding:1px 5px; border-radius:3px; letter-spacing:1px; flex-shrink:0;
 }
 .impact-badge-high   { background:var(--red-dim);    color:var(--red);    border:1px solid var(--red-dim); }
 .impact-badge-medium { background:var(--gold-dim);   color:var(--gold);   border:1px solid var(--gold-dim); }
@@ -933,16 +932,26 @@ select.input option { background:#111116; color:#E8E8F0; }
 
 
 /* ─── SIM TRADER ─── */
-#sim-layout {
-  grid-template-columns: 340px 1fr;
+#tab-simtrader { padding:0 !important; display:none; height:100%; overflow:hidden; }
+#tab-simtrader.active { display:flex !important; flex-direction:column; height:100%; }
+@media(max-width:767px) {
+  #tab-simtrader.active { height:calc(100vh - 110px); }
+  #sim-order-panel { width:100%; border-left:none; border-top:1px solid var(--border); max-height:50vh; }
+  #sim-body { flex-direction:column; }
+  #sim-chart-frame { min-height:240px; }
 }
-@media(max-width:900px) {
-  #sim-layout {
-    grid-template-columns: 1fr;
-  }
+@media(min-width:768px) and (max-width:1099px) {
+  #sim-order-panel { width:260px; }
 }
-.sim-pos-row { transition: background 0.2s; }
-.sim-pos-row:hover { background: var(--bg3); }
+.sim-tf-btn {
+  font-family:var(--font-mono); font-size:9px; padding:4px 9px;
+  border-radius:5px; cursor:pointer; border:1px solid var(--border2);
+  background:var(--bg3); color:var(--text3); transition:all 0.15s;
+}
+.sim-tf-btn.active { border-color:var(--gold); background:var(--gold-dim); color:var(--gold); }
+.sim-panel-tab { transition:color 0.15s, border-color 0.15s; }
+.sim-panel-tab.active { color:var(--gold) !important; border-bottom-color:var(--gold) !important; }
+.main-content:has(#tab-simtrader.active) { padding:0; overflow:hidden; }
 
 .speaker-strip {
   background:linear-gradient(90deg,#1a0a2e,#0d0d1a);
@@ -1442,7 +1451,7 @@ select.input option { background:#111116; color:#E8E8F0; }
           <div class="card-label">Daily Loss Tracker</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
             <div><label class="input-label">TODAY'S P&L ($)</label><input type="number" class="input" id="daily-pnl" placeholder="0.00" oninput="updateDailyLimit()"></div>
-            <div><label class="input-label">BALANCE ($)</label><input type="number" class="input" id="daily-balance" placeholder="84.76" oninput="updateDailyLimit()"></div>
+            <div><label class="input-label">BALANCE ($)</label><input type="number" class="input" id="daily-balance" placeholder="e.g. 1000" oninput="updateDailyLimit()"></div>
           </div>
           <div id="daily-limit-display" style="background:var(--bg2);border-radius:var(--r-sm);padding:14px;text-align:center;">
             <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--text3);">Enter values above</div>
@@ -1516,7 +1525,7 @@ select.input option { background:#111116; color:#E8E8F0; }
           <div class="card-label">Account Settings</div>
           <div style="margin-bottom:12px;">
             <label class="input-label">DEFAULT BALANCE ($)</label>
-            <input type="number" class="input" id="s-balance" placeholder="84.76">
+            <input type="number" class="input" id="s-balance" placeholder="e.g. 1000">
           </div>
           <div style="margin-bottom:12px;">
             <label class="input-label">DEFAULT RISK (%)</label>
@@ -1692,119 +1701,143 @@ select.input option { background:#111116; color:#E8E8F0; }
     </div>
 
     <!-- ── SIM TRADER TAB ── -->
-    <div class="tab-panel" id="tab-simtrader">
-      <!-- Account Bar -->
-      <div class="card" style="margin-bottom:12px;padding:14px 16px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-            <div>
-              <div style="font-family:var(--font-mono);font-size:7px;color:var(--text3);letter-spacing:2px;margin-bottom:2px;">ACCOUNT BALANCE</div>
-              <div id="sim-balance-display" style="font-family:var(--font-display);font-size:26px;font-weight:800;color:var(--green);line-height:1;">$10,000.00</div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-              <div style="background:var(--bg2);border-radius:8px;padding:8px 12px;text-align:center;">
-                <div id="sim-equity-display" style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--text);">$10,000.00</div>
-                <div style="font-family:var(--font-mono);font-size:7px;color:var(--text3);margin-top:2px;">EQUITY</div>
-              </div>
-              <div style="background:var(--bg2);border-radius:8px;padding:8px 12px;text-align:center;">
-                <div id="sim-pnl-display" style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--text);">$0.00</div>
-                <div style="font-family:var(--font-mono);font-size:7px;color:var(--text3);margin-top:2px;">OPEN P&L</div>
-              </div>
-              <div style="background:var(--bg2);border-radius:8px;padding:8px 12px;text-align:center;">
-                <div id="sim-total-pnl-display" style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--text);">$0.00</div>
-                <div style="font-family:var(--font-mono);font-size:7px;color:var(--text3);margin-top:2px;">NET P&L</div>
-              </div>
-            </div>
+    <div class="tab-panel" id="tab-simtrader" style="padding:0!important;display:none;height:100%;overflow:hidden;flex-direction:column;position:relative;">
+
+      <!-- TOP ACCOUNT BAR -->
+      <div id="sim-topbar" style="display:flex;align-items:center;gap:10px;padding:7px 12px;background:var(--bg1);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;">
+        <!-- Instrument -->
+        <select id="sim-instrument" onchange="simOnInstrumentChange()" style="background:var(--bg2);border:1px solid var(--border2);border-radius:6px;padding:5px 10px;color:var(--text);font-family:var(--font-mono);font-size:11px;outline:none;cursor:pointer;min-width:160px;">
+          <option value="XAUUSD">XAU/USD — Gold</option>
+          <option value="BTCUSD">BTC/USD — Bitcoin</option>
+          <option value="EURUSD">EUR/USD — Euro</option>
+          <option value="GBPUSD">GBP/USD — Sterling</option>
+          <option value="GBPJPY">GBP/JPY — Guppy</option>
+          <option value="USDJPY">USD/JPY — Yen</option>
+          <option value="ETHUSD">ETH/USD — Ethereum</option>
+          <option value="US30">US30 — Dow Jones</option>
+          <option value="SPX500">SPX500 — S&P 500</option>
+          <option value="NAS100">NAS100 — Nasdaq</option>
+          <option value="USOIL">WTI — Crude Oil</option>
+          <option value="XAGUSD">XAG/USD — Silver</option>
+        </select>
+        <!-- TF buttons -->
+        <div style="display:flex;gap:3px;">
+          <button class="sim-tf-btn active" onclick="simSetTF(this,'15')">15M</button>
+          <button class="sim-tf-btn" onclick="simSetTF(this,'60')">1H</button>
+          <button class="sim-tf-btn" onclick="simSetTF(this,'240')">4H</button>
+          <button class="sim-tf-btn" onclick="simSetTF(this,'D')">D</button>
+        </div>
+        <!-- Live price -->
+        <div style="display:flex;align-items:baseline;gap:5px;">
+          <span id="sim-market-price" style="font-family:var(--font-mono);font-size:17px;font-weight:700;color:var(--gold);">—</span>
+          <span id="sim-price-change" style="font-family:var(--font-mono);font-size:9px;color:var(--text3);"></span>
+        </div>
+        <!-- Account stats (right-aligned) -->
+        <div style="margin-left:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div style="text-align:right;">
+            <div style="font-family:var(--font-mono);font-size:7px;color:var(--text3);letter-spacing:1px;">BALANCE</div>
+            <div id="sim-balance-display" style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--green);">$10,000.00</div>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button onclick="simAddFunds()" style="background:var(--green-dim);border:1px solid var(--green);border-radius:7px;padding:7px 14px;color:var(--green);font-family:var(--font-mono);font-size:10px;cursor:pointer;font-weight:700;">+ Add Funds</button>
-            <button onclick="simResetAccount()" style="background:none;border:1px solid var(--border2);border-radius:7px;padding:7px 14px;color:var(--text3);font-family:var(--font-mono);font-size:10px;cursor:pointer;">Reset</button>
+          <div style="text-align:right;">
+            <div style="font-family:var(--font-mono);font-size:7px;color:var(--text3);letter-spacing:1px;">EQUITY</div>
+            <div id="sim-equity-display" style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--text);">$10,000.00</div>
           </div>
+          <div style="text-align:right;">
+            <div style="font-family:var(--font-mono);font-size:7px;color:var(--text3);letter-spacing:1px;">OPEN P&L</div>
+            <div id="sim-pnl-display" style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--text);">$0.00</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:var(--font-mono);font-size:7px;color:var(--text3);letter-spacing:1px;">NET P&L</div>
+            <div id="sim-total-pnl-display" style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--text);">$0.00</div>
+          </div>
+          <button onclick="simAddFunds()" style="background:var(--green-dim);border:1px solid var(--green);border-radius:6px;padding:4px 10px;color:var(--green);font-family:var(--font-mono);font-size:9px;cursor:pointer;font-weight:700;white-space:nowrap;">+ Funds</button>
+          <button onclick="simResetAccount()" style="background:none;border:1px solid var(--border2);border-radius:6px;padding:4px 8px;color:var(--text3);font-family:var(--font-mono);font-size:9px;cursor:pointer;">Reset</button>
         </div>
       </div>
 
-      <!-- Order Form + Chart (two-col on desktop) -->
-      <div style="display:grid;grid-template-columns:340px 1fr;gap:12px;" id="sim-layout">
+      <!-- MAIN BODY: Chart left, Order panel right -->
+      <div id="sim-body" style="display:flex;flex:1;min-height:0;overflow:hidden;">
 
-        <!-- ORDER FORM (TradeLocker-style) -->
-        <div>
-          <!-- Instrument + Direction -->
-          <div class="card" style="margin-bottom:10px;">
-            <div class="card-label">New Order</div>
-            <div style="margin-bottom:10px;">
-              <label class="input-label">INSTRUMENT</label>
-              <select class="input" id="sim-instrument" onchange="simUpdatePrice()" style="font-size:12px;">
-                <option value="XAUUSD">XAU/USD — Gold</option>
-                <option value="BTCUSD">BTC/USD — Bitcoin</option>
-                <option value="EURUSD">EUR/USD — Euro</option>
-                <option value="GBPUSD">GBP/USD — Sterling</option>
-                <option value="GBPJPY">GBP/JPY — Guppy</option>
-                <option value="USDJPY">USD/JPY — Yen</option>
-                <option value="ETHUSD">ETH/USD — Ethereum</option>
-                <option value="US30">US30 — Dow Jones</option>
-                <option value="SPX500">SPX500 — S&P 500</option>
-                <option value="NAS100">NAS100 — Nasdaq</option>
-                <option value="USOIL">WTI — Crude Oil</option>
-                <option value="XAGUSD">XAG/USD — Silver</option>
-              </select>
-            </div>
+        <!-- CHART + BUY/SELL overlay -->
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;position:relative;">
+          <iframe id="sim-chart-frame" src="" style="flex:1;border:none;display:block;background:#060608;" allowtransparency="true" frameborder="0"></iframe>
+
+          <!-- Floating BUY/SELL buttons -->
+          <div style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:10;">
+            <button onclick="simQuickBuy()" style="padding:11px 32px;border:none;border-radius:9px;background:linear-gradient(135deg,#00E87A,#00A855);color:#000;font-family:var(--font-display);font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 6px 24px #00E87A50;letter-spacing:1px;transition:transform 0.1s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform=''">▲ BUY</button>
+            <button onclick="simQuickSell()" style="padding:11px 32px;border:none;border-radius:9px;background:linear-gradient(135deg,#FF3D5A,#CC0022);color:#fff;font-family:var(--font-display);font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 6px 24px #FF3D5A50;letter-spacing:1px;transition:transform 0.1s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform=''">▼ SELL</button>
+          </div>
+
+          <!-- Open positions strip at bottom of chart (desktop) -->
+          <div id="sim-positions-strip" style="background:var(--bg1);border-top:1px solid var(--border);padding:6px 12px;flex-shrink:0;overflow-x:auto;white-space:nowrap;display:none;">
+            <span style="font-family:var(--font-mono);font-size:8px;color:var(--text3);letter-spacing:1px;margin-right:10px;">POSITIONS</span>
+            <span id="sim-strip-content" style="font-family:var(--font-mono);font-size:10px;color:var(--text3);">No open positions</span>
+          </div>
+        </div>
+
+        <!-- ORDER PANEL (right side) -->
+        <div id="sim-order-panel" style="width:288px;flex-shrink:0;background:var(--bg1);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
+
+          <!-- Panel tabs -->
+          <div style="display:flex;border-bottom:1px solid var(--border);">
+            <button class="sim-panel-tab active" id="spt-order" onclick="simPanelTab(this,'sim-panel-order')" style="flex:1;padding:9px 4px;font-family:var(--font-mono);font-size:8px;letter-spacing:1px;background:none;border:none;color:var(--gold);cursor:pointer;border-bottom:2px solid var(--gold);">ORDER</button>
+            <button class="sim-panel-tab" id="spt-positions" onclick="simPanelTab(this,'sim-panel-positions')" style="flex:1;padding:9px 4px;font-family:var(--font-mono);font-size:8px;letter-spacing:1px;background:none;border:none;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;">POSITIONS</button>
+            <button class="sim-panel-tab" id="spt-history" onclick="simPanelTab(this,'sim-panel-history')" style="flex:1;padding:9px 4px;font-family:var(--font-mono);font-size:8px;letter-spacing:1px;background:none;border:none;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;">HISTORY</button>
+          </div>
+
+          <!-- ORDER FORM -->
+          <div id="sim-panel-order" style="flex:1;overflow-y:auto;padding:10px 12px;">
 
             <!-- BUY / SELL toggle -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border-radius:8px;overflow:hidden;border:1px solid var(--border2);margin-bottom:12px;">
-              <button id="sim-buy-btn" onclick="simSetDir('BUY')" style="padding:12px;background:var(--green-dim);border:none;color:var(--green);font-family:var(--font-display);font-size:14px;font-weight:800;cursor:pointer;border-right:1px solid var(--border2);letter-spacing:1px;">▲ BUY</button>
-              <button id="sim-sell-btn" onclick="simSetDir('SELL')" style="padding:12px;background:none;border:none;color:var(--text3);font-family:var(--font-display);font-size:14px;font-weight:800;cursor:pointer;letter-spacing:1px;">▼ SELL</button>
-            </div>
-
-            <!-- Market price display -->
-            <div style="background:var(--bg2);border-radius:8px;padding:10px 12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
-              <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1px;">MARKET PRICE</div>
-              <div id="sim-market-price" style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--gold);">—</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;border-radius:7px;overflow:hidden;border:1px solid var(--border2);margin-bottom:10px;">
+              <button id="sim-buy-btn" onclick="simSetDir('BUY')" style="padding:10px;background:var(--green-dim);border:none;color:var(--green);font-family:var(--font-display);font-size:13px;font-weight:800;cursor:pointer;border-right:1px solid var(--border2);letter-spacing:1px;">▲ BUY</button>
+              <button id="sim-sell-btn" onclick="simSetDir('SELL')" style="padding:10px;background:none;border:none;color:var(--text3);font-family:var(--font-display);font-size:13px;font-weight:800;cursor:pointer;letter-spacing:1px;">▼ SELL</button>
             </div>
 
             <!-- Order type -->
-            <div style="margin-bottom:10px;">
+            <div style="margin-bottom:8px;">
               <label class="input-label">ORDER TYPE</label>
-              <select class="input" id="sim-order-type" onchange="simToggleLimit()" style="font-size:12px;">
+              <select class="input" id="sim-order-type" onchange="simToggleLimit()" style="font-size:11px;padding:6px 8px;">
                 <option value="market">Market</option>
                 <option value="limit">Limit</option>
                 <option value="stop">Stop</option>
               </select>
             </div>
 
-            <!-- Limit/Stop price (hidden for market) -->
-            <div id="sim-limit-row" style="display:none;margin-bottom:10px;">
+            <!-- Entry price (limit/stop only) -->
+            <div id="sim-limit-row" style="display:none;margin-bottom:8px;">
               <label class="input-label">ENTRY PRICE</label>
-              <input type="number" class="input" id="sim-entry-price" placeholder="Enter price level" step="0.01" style="font-size:12px;">
+              <input type="number" class="input" id="sim-entry-price" placeholder="Price level" step="0.01" style="font-size:11px;">
             </div>
 
-            <!-- Volume / Risk -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
-              <div>
-                <label class="input-label">LOT SIZE</label>
-                <input type="number" class="input" id="sim-lots" value="0.01" min="0.01" step="0.01" oninput="simCalcRisk()" style="font-size:12px;color:var(--gold);">
-              </div>
-              <div>
-                <label class="input-label">RISK AMOUNT ($)</label>
-                <input type="number" class="input" id="sim-risk-amt" placeholder="auto" oninput="simCalcLotFromRisk()" style="font-size:12px;color:var(--gold);">
-              </div>
-            </div>
-
-            <!-- TP / SL -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
-              <div>
-                <label class="input-label" style="color:var(--green);">TAKE PROFIT</label>
-                <input type="number" class="input" id="sim-tp" placeholder="Optional" step="0.01" oninput="simCalcRisk()" style="font-size:12px;border-color:var(--green-dim);">
-              </div>
+            <!-- SL / TP side by side -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
               <div>
                 <label class="input-label" style="color:var(--red);">STOP LOSS</label>
-                <input type="number" class="input" id="sim-sl" placeholder="Optional" step="0.01" oninput="simCalcRisk()" style="font-size:12px;border-color:var(--red-dim);">
+                <input type="number" class="input" id="sim-sl" placeholder="Optional" step="0.01" oninput="simCalcRisk()" style="font-size:11px;border-color:var(--red-dim);">
+              </div>
+              <div>
+                <label class="input-label" style="color:var(--green);">TAKE PROFIT</label>
+                <input type="number" class="input" id="sim-tp" placeholder="Optional" step="0.01" oninput="simCalcRisk()" style="font-size:11px;border-color:var(--green-dim);">
+              </div>
+            </div>
+
+            <!-- Lot + Risk $ -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+              <div>
+                <label class="input-label">LOT SIZE</label>
+                <input type="number" class="input" id="sim-lots" value="0.01" min="0.01" step="0.01" oninput="simCalcRisk()" style="font-size:11px;color:var(--gold);">
+              </div>
+              <div>
+                <label class="input-label">RISK ($)</label>
+                <input type="number" class="input" id="sim-risk-amt" placeholder="auto" oninput="simCalcLotFromRisk()" style="font-size:11px;color:var(--gold);">
               </div>
             </div>
 
             <!-- Leverage -->
-            <div style="margin-bottom:12px;">
+            <div style="margin-bottom:8px;">
               <label class="input-label">LEVERAGE</label>
-              <select class="input" id="sim-leverage" onchange="simCalcRisk()" style="font-size:12px;">
+              <select class="input" id="sim-leverage" onchange="simCalcRisk()" style="font-size:11px;padding:6px 8px;">
                 <option value="10">1:10</option>
                 <option value="20">1:20</option>
                 <option value="30">1:30</option>
@@ -1821,47 +1854,55 @@ select.input option { background:#111116; color:#E8E8F0; }
               </select>
             </div>
 
-            <!-- Risk summary -->
-            <div id="sim-risk-summary" style="background:var(--bg2);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-family:var(--font-mono);font-size:10px;">
-              <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text3);">Margin required</span><span id="sim-margin" style="color:var(--gold);">—</span></div>
-              <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text3);">Max risk</span><span id="sim-max-risk" style="color:var(--red);">—</span></div>
+            <!-- Risk summary box -->
+            <div style="background:var(--bg2);border-radius:7px;padding:8px 10px;margin-bottom:10px;font-family:var(--font-mono);font-size:9px;border:1px solid var(--border);">
+              <div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="color:var(--text3);">Margin req.</span><span id="sim-margin" style="color:var(--gold);">—</span></div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="color:var(--text3);">Max loss if SL</span><span id="sim-max-risk" style="color:var(--red);">—</span></div>
               <div style="display:flex;justify-content:space-between;"><span style="color:var(--text3);">R:R ratio</span><span id="sim-rr-display" style="color:var(--blue);">—</span></div>
             </div>
 
-            <!-- Place order button -->
-            <button onclick="simPlaceOrder()" id="sim-place-btn" style="width:100%;padding:14px;border-radius:8px;border:none;font-family:var(--font-display);font-size:15px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#00E87A,#00C860);color:#000;letter-spacing:0.5px;transition:all 0.15s;">▲ PLACE BUY</button>
+            <!-- PLACE ORDER button -->
+            <button onclick="simConfirmOrder()" id="sim-place-btn" style="width:100%;padding:12px;border-radius:8px;border:none;font-family:var(--font-display);font-size:13px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#00E87A,#00A855);color:#000;letter-spacing:0.5px;transition:all 0.15s;">▲ PLACE BUY</button>
           </div>
-        </div>
 
-        <!-- RIGHT SIDE: Open positions + history -->
-        <div>
-          <!-- Open Positions -->
-          <div class="card" style="margin-bottom:10px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-              <div class="card-label" style="margin:0;">Open Positions</div>
-              <button onclick="simCloseAll()" style="background:none;border:1px solid var(--red-dim);border-radius:5px;color:var(--red);font-family:var(--font-mono);font-size:9px;padding:3px 10px;cursor:pointer;">Close All</button>
+          <!-- POSITIONS PANEL -->
+          <div id="sim-panel-positions" style="display:none;flex:1;overflow-y:auto;padding:10px 12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <span style="font-family:var(--font-mono);font-size:8px;color:var(--text3);letter-spacing:1.5px;">OPEN POSITIONS</span>
+              <button onclick="simCloseAll()" style="background:none;border:1px solid var(--red-dim);border-radius:5px;color:var(--red);font-family:var(--font-mono);font-size:8px;padding:2px 8px;cursor:pointer;">Close All</button>
             </div>
             <div id="sim-open-positions">
-              <div class="empty"><div class="empty-icon" style="font-size:24px;">📊</div><div class="empty-text" style="font-size:11px;">No open positions</div></div>
+              <div class="empty" style="padding:20px 0;"><div class="empty-icon" style="font-size:26px;">📊</div><div class="empty-text" style="font-size:11px;">No open positions</div></div>
             </div>
           </div>
 
-          <!-- Trade History -->
-          <div class="card">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-              <div class="card-label" style="margin:0;">Trade History</div>
-              <div style="display:flex;gap:8px;align-items:center;">
-                <span id="sim-history-stats" style="font-family:var(--font-mono);font-size:9px;color:var(--text3);"></span>
-                <button onclick="simClearHistory()" style="background:none;border:1px solid var(--border2);border-radius:5px;color:var(--text3);font-family:var(--font-mono);font-size:9px;padding:3px 10px;cursor:pointer;">Clear</button>
-              </div>
+          <!-- HISTORY PANEL -->
+          <div id="sim-panel-history" style="display:none;flex:1;overflow-y:auto;padding:10px 12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <span id="sim-history-stats" style="font-family:var(--font-mono);font-size:8px;color:var(--text3);letter-spacing:1px;"></span>
+              <button onclick="simClearHistory()" style="background:none;border:1px solid var(--border2);border-radius:5px;color:var(--text3);font-family:var(--font-mono);font-size:8px;padding:2px 8px;cursor:pointer;">Clear</button>
             </div>
             <div id="sim-history">
-              <div class="empty"><div class="empty-icon" style="font-size:24px;">📋</div><div class="empty-text" style="font-size:11px;">No closed trades yet</div></div>
+              <div class="empty" style="padding:20px 0;"><div class="empty-icon" style="font-size:26px;">📋</div><div class="empty-text" style="font-size:11px;">No closed trades</div></div>
             </div>
+          </div>
+
+        </div><!-- /order-panel -->
+      </div><!-- /sim-body -->
+
+      <!-- TRADE CONFIRM MODAL -->
+      <div id="sim-confirm-modal" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.75);z-index:200;align-items:center;justify-content:center;">
+        <div style="background:var(--bg1);border:1px solid var(--border2);border-radius:14px;padding:24px;width:320px;max-width:92vw;">
+          <div style="font-family:var(--font-display);font-size:18px;font-weight:800;margin-bottom:16px;text-align:center;" id="sim-confirm-title">Confirm BUY</div>
+          <div id="sim-confirm-details" style="font-family:var(--font-mono);font-size:11px;background:var(--bg2);border-radius:8px;padding:14px;margin-bottom:16px;line-height:2;"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <button onclick="simCancelOrder()" style="padding:12px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text2);font-family:var(--font-display);font-size:13px;font-weight:700;cursor:pointer;">Cancel</button>
+            <button id="sim-confirm-exec" onclick="simExecuteOrder()" style="padding:12px;border-radius:8px;border:none;font-family:var(--font-display);font-size:13px;font-weight:800;cursor:pointer;color:#000;">Confirm</button>
           </div>
         </div>
       </div>
-    </div>
+
+    </div><!-- /tab-simtrader -->
 
     <!-- ── ALERTS TAB ── -->
     <div class="tab-panel" id="tab-alerts">
@@ -1922,6 +1963,11 @@ select.input option { background:#111116; color:#E8E8F0; }
           <button class="cal-nav-btn" onclick="calPrevMonth()">◀ Prev</button>
           <div class="cal-month-label" id="cal-month-label">March 2026</div>
           <button class="cal-nav-btn" onclick="calNextMonth()">Next ▶</button>
+        </div>
+        <!-- Timezone selector -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+          <span style="font-family:var(--font-mono);font-size:8px;color:var(--text3);letter-spacing:1px;">🕐 YOUR TIMEZONE</span>
+          <select id="cal-tz-select" class="input" style="font-size:10px;padding:4px 8px;height:auto;flex:1;min-width:180px;max-width:280px;"></select>
         </div>
         <div class="cal-grid" id="cal-grid-headers">
           <div class="cal-day-header">MON</div>
@@ -2531,7 +2577,7 @@ function navigate(tab, btn) {
   const mc  = document.querySelector('.main-content');
   const rp  = document.getElementById('right-panel');
   const app = document.getElementById('app');
-  if (tab === 'chart') {
+  if (tab === 'chart' || tab === 'simtrader') {
     if (mc)  { mc.style.padding = '0'; mc.style.overflow = 'hidden'; }
     if (rp)  rp.style.display = 'none';
     if (app) app.classList.add('chart-mode');
@@ -2540,7 +2586,6 @@ function navigate(tab, btn) {
     if (app) app.classList.remove('chart-mode');
     if (rp && window.innerWidth >= 1200) rp.style.removeProperty('display');
   }
-
   // Init chart iframe on first visit
   if (tab === 'chart' && !chartInitialised) {
     chartInitialised = true;
@@ -2738,11 +2783,15 @@ function calcChartPip() {
   if (rrEl)   rrEl.textContent   = rr !== '—' ? '1:' + rr : '—';
 
   // Lot size from sidebar balance
-  const bal  = parseFloat(document.getElementById('balance-input')?.value) || 84.76;
+  const bal  = parseFloat(document.getElementById('balance-input')?.value) || 0;
   const risk = parseFloat(document.getElementById('risk-input')?.value)    || 1;
-  const riskAmt = bal * risk / 100;
-  const lot = Math.max(0.01, Math.floor((riskAmt / slD) * 100) / 100);
-  if (lotEl) lotEl.textContent = lot.toFixed(2);
+  if (bal && slD) {
+    const riskAmt = bal * risk / 100;
+    const lot = Math.max(0.01, Math.floor((riskAmt / slD) * 100) / 100);
+    if (lotEl) lotEl.textContent = lot.toFixed(2);
+  } else {
+    if (lotEl) lotEl.textContent = '—';
+  }
 }
 
 async function fetchLivePrices() {
@@ -3888,9 +3937,10 @@ async function runScan() {
   emptyDiv.style.display = 'none';
   if (voiceRow) voiceRow.style.display = 'none';
 
-  const bal = document.getElementById('balance-input').value || '84.76';
-  const risk = document.getElementById('risk-input').value || '1';
-  const riskAmt = (parseFloat(bal) * parseFloat(risk) / 100).toFixed(2);
+  const bal     = parseFloat(document.getElementById('balance-input').value) || 0;
+  const risk    = parseFloat(document.getElementById('risk-input').value) || 1;
+  const riskAmt = bal ? (bal * risk / 100).toFixed(2) : '0';
+  const balDisplay = bal ? '$' + bal.toFixed(2) : 'not set';
 
   let marketData = '';
   let livePrice = {};
@@ -3944,7 +3994,7 @@ async function runScan() {
   btn.innerHTML = '<div class="spinner" style="color:#000;"></div> Analysing...';
 
   const prompt = `Analyse these pairs: ${pairs.join(', ')}
-Account: $${bal} balance | ${risk}% risk per trade | Max risk: $${riskAmt}
+Account: ${balDisplay} balance | ${risk}% risk per trade | Max risk per trade: ${bal ? '$'+riskAmt : 'not specified — omit lot size calculations'}
 Time: ${new Date().toUTCString()}
 ${marketData}
 Provide full multi-timeframe analysis with 15M scalp setups, plain English explanations, and copy-ready trade summaries. JSON only.`;
@@ -4976,14 +5026,28 @@ function renderOptionsFlowFallback() {
 // ═══════════════════════════════════════════
 // CALENDAR STATE & CONFIG
 // ═══════════════════════════════════════════
-// finnhubKey declared at top of script
-let calViewDate  = new Date();        // month being viewed
-let calSelected  = new Date();        // selected date
-let calEventCache = {};               // date-string → events array
+let calViewDate  = new Date();
+let calSelected  = new Date();
+calSelected.setHours(0,0,0,0);
+let calEventCache = {};
 let calFilter    = 'all';
-let allCalEvents = [];                // events for selected date
+let allCalEvents = [];
 
-// High-impact speaker keywords — these trigger purple speech events
+// User timezone offset in hours (default: browser local)
+let calTimezoneOffset = -(new Date().getTimezoneOffset() / 60); // e.g. +1 for BST
+let calTimezoneName   = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+function calSetTimezone(offset, name) {
+  calTimezoneOffset = parseFloat(offset);
+  calTimezoneName   = name;
+  // Invalidate ALL cached events so they re-fetch with new tz
+  calEventCache = {};
+  allCalEvents  = [];
+  renderCalendarGrid();
+  loadEventsForDate(calSelected);
+}
+
+// Speaker keywords
 const SPEAKER_KEYWORDS = [
   'powell','fed chair','federal reserve','fomc','fed meeting',
   'lagarde','ecb','european central bank','rate decision',
@@ -4995,7 +5059,6 @@ const SPEAKER_KEYWORDS = [
   'earnings','results','guidance'
 ];
 
-// Country flags for display
 const COUNTRY_FLAG = {
   US:'🇺🇸', GB:'🇬🇧', EU:'🇪🇺', JP:'🇯🇵', AU:'🇦🇺',
   CA:'🇨🇦', CH:'🇨🇭', CN:'🇨🇳', NZ:'🇳🇿', DE:'🇩🇪',
@@ -5010,6 +5073,33 @@ function initCalendar() {
   loadEventsForDate(calSelected);
   fetchFinnhubNews('general');
   fetchSpeakerAlerts();
+  // Render timezone dropdown
+  renderTimezoneSelector();
+}
+
+function renderTimezoneSelector() {
+  const el = document.getElementById('cal-tz-select');
+  if (!el) return;
+  const zones = [
+    { label:'🌍 London (UTC+0/+1)',    offset:0,   name:'Europe/London' },
+    { label:'🌍 Paris/Berlin (UTC+1/+2)', offset:1, name:'Europe/Paris' },
+    { label:'🌏 Dubai (UTC+4)',          offset:4,  name:'Asia/Dubai' },
+    { label:'🌏 Singapore (UTC+8)',      offset:8,  name:'Asia/Singapore' },
+    { label:'🌏 Tokyo (UTC+9)',          offset:9,  name:'Asia/Tokyo' },
+    { label:'🌎 New York (UTC-5/-4)',    offset:-5, name:'America/New_York' },
+    { label:'🌎 Chicago (UTC-6/-5)',     offset:-6, name:'America/Chicago' },
+    { label:'🌎 Los Angeles (UTC-8/-7)',  offset:-8, name:'America/Los_Angeles' },
+    { label:'🌐 UTC (UTC+0)',            offset:0,  name:'UTC' },
+  ];
+  // Detect current tz
+  const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  el.innerHTML = zones.map(z =>
+    `<option value="${z.offset}" data-name="${z.name}" ${z.name === localTz || (z.name === 'UTC' && !zones.find(zz=>zz.name===localTz)) ? 'selected' : ''}>${z.label}</option>`
+  ).join('');
+  el.onchange = () => {
+    const opt = el.options[el.selectedIndex];
+    calSetTimezone(parseFloat(el.value), opt.getAttribute('data-name'));
+  };
 }
 
 // ═══════════════════════════════════════════
@@ -5024,16 +5114,16 @@ function renderCalendarGrid() {
   const m = calViewDate.getMonth();
   label.textContent = calViewDate.toLocaleDateString('en-GB', { month:'long', year:'numeric' });
 
-  // First day of month (0=Sun → convert to Mon-based)
   const firstDay = new Date(y, m, 1);
-  let startOffset = firstDay.getDay() - 1; // Mon=0
+  let startOffset = firstDay.getDay() - 1;
   if (startOffset < 0) startOffset = 6;
 
-  // Days in month + prev month fill
   const daysInMonth = new Date(y, m+1, 0).getDate();
   const daysInPrev  = new Date(y, m, 0).getDate();
   const today = new Date();
   today.setHours(0,0,0,0);
+
+  const selDs = dateStr(calSelected);
 
   let html = '';
   let dayCount = 1;
@@ -5042,33 +5132,29 @@ function renderCalendarGrid() {
 
   for (let i = 0; i < totalCells; i++) {
     if (i < startOffset) {
-      // Prev month
       const d = daysInPrev - startOffset + i + 1;
-      html += '<div class="cal-day other-month"><div class="cal-day-num">' + d + '</div></div>';
+      html += `<div class="cal-day other-month"><div class="cal-day-num">${d}</div></div>`;
     } else if (dayCount <= daysInMonth) {
-      const d     = dayCount;
-      const date  = new Date(y, m, d);
+      const d    = dayCount;
+      const date = new Date(y, m, d);
       date.setHours(0,0,0,0);
-      const ds    = dateStr(date);
-      const isToday = date.getTime() === today.getTime();
-      const isSelected = dateStr(calSelected) === ds;
-      const events = calEventCache[ds] || [];
+      const ds   = dateStr(date);
+      const isToday    = date.getTime() === today.getTime();
+      const isSelected = selDs === ds;
+      const events  = calEventCache[ds] || [];
       const hasHigh = events.some(e => e.impact === 'high' || e.impact === 'speech');
 
-      const dots = events.length ? '<div class="cal-dot-row">' +
-        [...new Set(events.map(e => e.impact).slice(0,4))].map(imp =>
-          '<div class="cal-dot cal-dot-' + imp + '"></div>'
-        ).join('') + '</div>' : '';
+      const dots = events.length ? `<div class="cal-dot-row">${
+        [...new Set(events.map(e => e.impact))].slice(0,4)
+          .map(imp => `<div class="cal-dot cal-dot-${imp}"></div>`).join('')
+      }</div>` : '';
 
-      html += '<div class="cal-day' +
-        (isToday    ? ' today'       : '') +
-        (isSelected ? ' selected'    : '') +
-        (hasHigh    ? ' has-high'    : '') +
-        '" onclick="calSelectDate(' + y + ',' + m + ',' + d + ')">' +
-        '<div class="cal-day-num">' + d + '</div>' + dots + '</div>';
+      html += `<div class="cal-day${isToday?' today':''}${isSelected?' selected':''}${hasHigh?' has-high':''}"
+        id="calday-${ds}" onclick="calSelectDate(${y},${m},${d})"
+        ><div class="cal-day-num">${d}</div>${dots}</div>`;
       dayCount++;
     } else {
-      html += '<div class="cal-day other-month"><div class="cal-day-num">' + nextCount++ + '</div></div>';
+      html += `<div class="cal-day other-month"><div class="cal-day-num">${nextCount++}</div></div>`;
     }
   }
   grid.innerHTML = html;
@@ -5082,19 +5168,26 @@ function calNextMonth() {
   calViewDate = new Date(calViewDate.getFullYear(), calViewDate.getMonth() + 1, 1);
   renderCalendarGrid();
 }
+
 function calSelectDate(y, m, d) {
+  // Update selected state
+  const prevDs = dateStr(calSelected);
+  const prevEl = document.getElementById('calday-' + prevDs);
+  if (prevEl) prevEl.classList.remove('selected');
+
   calSelected = new Date(y, m, d);
   calSelected.setHours(0,0,0,0);
-  // Remove selected class from all days
-  document.querySelectorAll('.cal-day.selected').forEach(el => el.classList.remove('selected'));
-  // Add selected class only to clicked day
-  const allDays = document.querySelectorAll('#cal-grid .cal-day:not(.other-month)');
-  allDays.forEach(el => {
-    const num = parseInt(el.querySelector('.cal-day-num')?.textContent);
-    if (num === d) el.classList.add('selected');
-  });
+  const newDs = dateStr(calSelected);
+  const newEl = document.getElementById('calday-' + newDs);
+  if (newEl) newEl.classList.add('selected');
+
+  // Always fetch fresh — delete cache for this date so stale data doesn't show
+  delete calEventCache[newDs];
+  allCalEvents = [];
+
   loadEventsForDate(calSelected);
 }
+
 function dateStr(date) {
   return date.getFullYear() + '-' +
     String(date.getMonth()+1).padStart(2,'0') + '-' +
@@ -5105,113 +5198,135 @@ function dateStr(date) {
 // LOAD EVENTS FOR A DATE
 // ═══════════════════════════════════════════
 async function loadEventsForDate(date) {
-  const ds = dateStr(date);
+  const ds    = dateStr(date);
   const label = document.getElementById('cal-selected-label');
   const body  = document.getElementById('cal-events-body');
+
   if (label) {
     const today = new Date(); today.setHours(0,0,0,0);
     const isTdy = date.getTime() === today.getTime();
     label.textContent = isTdy ? "Today's Events" :
       date.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'long' });
   }
-  if (body) body.innerHTML = '<div class="pulse" style="font-family:var(--font-mono);font-size:11px;color:var(--text3);padding:12px 0;">Fetching events...</div>';
-
-  // Check cache
-  if (calEventCache[ds]) {
-    allCalEvents = calEventCache[ds];
-    renderCalEvents(allCalEvents, calFilter);
-    return;
-  }
+  if (body) body.innerHTML = `<div class="pulse" style="font-family:var(--font-mono);font-size:11px;color:var(--text3);padding:12px 0;">Fetching events from ForexFactory...</div>`;
 
   const events = [];
 
-  // ── Source 1: ForexFactory calendar (via CORS proxy) ─────────────────────
+  // ── Source 1: ForexFactory (via proxy) ───────────────────────────────────
   let ffLoaded = false;
   try {
-    // ForexFactory uses week-based URLs; find the Monday of the given week
     const ffDate = new Date(date);
-    const dayOfWeek = ffDate.getDay() === 0 ? 6 : ffDate.getDay() - 1; // Mon=0
-    ffDate.setDate(ffDate.getDate() - dayOfWeek);
-    const ffYear  = ffDate.getFullYear();
-    const ffMonth = String(ffDate.getMonth() + 1).padStart(2, '0');
-    const ffDay   = String(ffDate.getDate()).padStart(2, '0');
-    const ffUrl   = `https://www.forexfactory.com/calendar.php?week=${ffYear}.${ffMonth}.${ffDay}`;
-    // Use a reliable CORS proxy
+    const dow = ffDate.getDay() === 0 ? 6 : ffDate.getDay() - 1;
+    ffDate.setDate(ffDate.getDate() - dow);
+    const ffY = ffDate.getFullYear();
+    const ffM = String(ffDate.getMonth() + 1).padStart(2,'0');
+    const ffD = String(ffDate.getDate()).padStart(2,'0');
+    const ffUrl    = `https://www.forexfactory.com/calendar.php?week=${ffY}.${ffM}.${ffD}`;
     const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(ffUrl)}`;
-    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
+    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
     if (res.ok) {
-      const html = await res.text();
-      // Parse the HTML table rows
-      const parser  = new DOMParser();
-      const doc     = parser.parseFromString(html, 'text/html');
-      const rows    = doc.querySelectorAll('tr.calendar__row');
+      const html   = await res.text();
+      const parser = new DOMParser();
+      const doc    = parser.parseFromString(html, 'text/html');
+      const rows   = doc.querySelectorAll('tr.calendar__row');
       let lastTime  = '';
-      let lastDate  = null;
+      let lastDayEl = null;
+
       rows.forEach(row => {
-        // Skip header rows
         if (row.classList.contains('calendar__row--no-border')) return;
-        // Date cell
-        const dateCell = row.querySelector('.calendar__date');
+        // Track current date via date cell
+        const dateCell = row.querySelector('td.calendar__date');
         if (dateCell && dateCell.textContent.trim()) {
-          lastDate = dateCell.textContent.trim();
+          lastDayEl = dateCell.textContent.trim(); // e.g. "Tue Mar 31"
         }
-        // Time cell
-        const timeCell = row.querySelector('.calendar__time');
-        if (timeCell && timeCell.textContent.trim()) lastTime = timeCell.textContent.trim();
-        // Currency / country
-        const currCell  = row.querySelector('.calendar__currency');
-        const titleCell = row.querySelector('.calendar__event-title');
-        const impCell   = row.querySelector('.calendar__impact span');
+        // Only include rows matching our target date
+        if (lastDayEl) {
+          // Parse the FF date string against the selected date
+          const targetMonthDay = date.toLocaleDateString('en-US', { month:'short', day:'numeric' }); // "Mar 31"
+          const ffMonthDay     = lastDayEl.replace(/^[A-Za-z]+\s+/, ''); // strip weekday
+          if (!lastDayEl.toLowerCase().includes(
+            date.toLocaleDateString('en-US', { month:'short' }).toLowerCase()
+          ) || !lastDayEl.includes(String(date.getDate()))) {
+            return; // skip rows not matching our date
+          }
+        }
+
+        const timeCell  = row.querySelector('td.calendar__time');
+        const currCell  = row.querySelector('td.calendar__currency');
+        const titleCell = row.querySelector('.calendar__event');
+        const impCell   = row.querySelector('td.calendar__impact span');
+
         if (!titleCell) return;
-        const title    = titleCell.textContent.trim();
+        const title = (titleCell.textContent || '').trim();
         if (!title) return;
-        // Impact from icon class
-        const impClass = impCell ? impCell.className : '';
-        const imp = impClass.includes('high') ? 'high'
-                  : impClass.includes('medium') ? 'medium'
-                  : impClass.includes('low') ? 'low' : 'low';
+
+        if (timeCell && timeCell.textContent.trim() && timeCell.textContent.trim() !== 'All Day') {
+          lastTime = timeCell.textContent.trim();
+        }
+
+        const impClass = impCell ? (impCell.className + ' ' + (impCell.getAttribute('title')||'')) : '';
+        const imp = impClass.toLowerCase().includes('high') ? 'high'
+                  : impClass.toLowerCase().includes('medium') ? 'medium'
+                  : 'low';
+
         const currency = currCell ? currCell.textContent.trim() : '';
-        // Map currency to country
-        const currencyToCountry = { USD:'US', EUR:'EU', GBP:'GB', JPY:'JP', AUD:'AU',
-          CAD:'CA', CHF:'CH', CNY:'CN', NZD:'NZ', ALL:'ALL' };
-        const country = currencyToCountry[currency] || currency;
-        // Filter to the specific date selected
+        const currencyToCountry = {
+          USD:'US', EUR:'EU', GBP:'GB', JPY:'JP', AUD:'AU',
+          CAD:'CA', CHF:'CH', CNY:'CN', NZD:'NZ'
+        };
+        const country  = currencyToCountry[currency] || currency;
         const isSpeech = SPEAKER_KEYWORDS.some(k => title.toLowerCase().includes(k));
-        events.push({
-          time:    (lastTime || 'All Day') + ' ET',
-          title,
-          country,
-          impact:  isSpeech ? 'speech' : imp,
-          source:  'ForexFactory'
-        });
+
+        // Convert ET time to user's timezone
+        let displayTime = (lastTime || 'All Day');
+        if (lastTime && lastTime !== 'All Day') {
+          try {
+            // ET = UTC-5 (EST) or UTC-4 (EDT) — use UTC-5 as base
+            const [timePart, ampm] = lastTime.split(/(?=[ap]m)/i);
+            let [h, min] = timePart.split(':').map(Number);
+            if (!min) min = 0;
+            if (ampm?.toLowerCase() === 'pm' && h !== 12) h += 12;
+            if (ampm?.toLowerCase() === 'am' && h === 12) h = 0;
+            // Convert ET (UTC-5) → user tz
+            const etOffset = -5;
+            const utcH  = h - etOffset; // to UTC
+            const localH = ((utcH + calTimezoneOffset) % 24 + 24) % 24;
+            const localM = min;
+            displayTime  = `${String(localH).padStart(2,'0')}:${String(localM).padStart(2,'0')}`;
+          } catch(_) {}
+        }
+
+        events.push({ time: displayTime, title, country, impact: isSpeech ? 'speech' : imp, source: 'ForexFactory' });
       });
+
       if (events.length > 0) ffLoaded = true;
     }
   } catch(e) { console.warn('ForexFactory:', e.message); }
 
-  // ── Source 2: TradingView economic calendar (fallback) ────────────────────
+  // ── Source 2: TradingView fallback ───────────────────────────────────────
   if (!ffLoaded) {
     try {
       const from = ds + 'T00:00:00.000Z';
       const to   = ds + 'T23:59:59.000Z';
-      const url  = 'https://economic-calendar.tradingview.com/events?from=' + from + '&to=' + to +
-                   '&countries=US,GB,EU,JP,AU,CA,CH,CN,NZ,DE,FR&minImportance=-1';
-      const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      const url  = `https://economic-calendar.tradingview.com/events?from=${from}&to=${to}&countries=US,GB,EU,JP,AU,CA,CH,CN,NZ,DE,FR&minImportance=-1`;
+      const res  = await fetch(url, { signal: AbortSignal.timeout(8000) });
       if (res.ok) {
         const data = await res.json();
         (data.result || []).forEach(ev => {
-          const title = ev.title || ev.indicator || 'Economic Event';
-          const imp   = ev.importance >= 2 ? 'high' : ev.importance === 1 ? 'medium' : 'low';
+          const title    = ev.title || ev.indicator || 'Economic Event';
+          const imp      = ev.importance >= 2 ? 'high' : ev.importance === 1 ? 'medium' : 'low';
           const isSpeech = SPEAKER_KEYWORDS.some(k => title.toLowerCase().includes(k));
+          // Convert UTC time to user timezone
+          const evDate   = new Date(ev.date);
+          const utcH     = evDate.getUTCHours();
+          const utcM     = evDate.getUTCMinutes();
+          const localH   = ((utcH + calTimezoneOffset) % 24 + 24) % 24;
+          const timeStr  = `${String(localH).padStart(2,'0')}:${String(utcM).padStart(2,'0')}`;
           events.push({
-            time:    new Date(ev.date).toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',timeZone:'UTC'}) + ' UTC',
-            title,
-            country: ev.country || 'ALL',
-            impact:  isSpeech ? 'speech' : imp,
-            actual:  ev.actual,
-            forecast:ev.forecast,
-            previous:ev.previous,
-            source:  'TradingView'
+            time: timeStr, title, country: ev.country || 'ALL',
+            impact: isSpeech ? 'speech' : imp,
+            actual: ev.actual, forecast: ev.forecast, previous: ev.previous,
+            source: 'TradingView'
           });
         });
       }
@@ -5313,33 +5428,23 @@ function renderCalEvents(events, filter) {
   }
 
   body.innerHTML = filtered.map(ev => {
-    const flag   = COUNTRY_FLAG[ev.country] || '🌐';
-    const impCls = 'cal-event-' + ev.impact;
-    const badgeCls = 'impact-badge-' + (ev.impact === 'speech' ? 'speech' : ev.impact);
-    const badgeLabel = ev.impact === 'speech' ? '💬 SPEECH' :
-                       ev.impact === 'high'   ? '🔴 HIGH' :
-                       ev.impact === 'medium' ? '🟡 MED'  : '⚪ LOW';
+    const flag    = COUNTRY_FLAG[ev.country] || '🌐';
+    const impCls  = 'cal-event-' + ev.impact;
+    const badgeCls= 'impact-badge-' + (ev.impact === 'speech' ? 'speech' : ev.impact);
+    const badgeLbl= ev.impact === 'speech' ? '💬' : ev.impact === 'high' ? '🔴' : ev.impact === 'medium' ? '🟡' : '⚪';
 
-    const actHtml = ev.actual !== undefined && ev.actual !== null && ev.actual !== ''
-      ? '<span class="cal-event-actual">' + ev.actual + '</span>' : '';
-    const fcastHtml = ev.forecast !== undefined && ev.forecast !== null && ev.forecast !== ''
-      ? '<span style="font-family:var(--font-mono);font-size:9px;color:var(--text3);">F: ' + ev.forecast + '</span>' : '';
-    const prevHtml  = ev.previous !== undefined && ev.previous !== null && ev.previous !== ''
-      ? '<span style="font-family:var(--font-mono);font-size:9px;color:var(--text3);">P: ' + ev.previous + '</span>' : '';
-    const noteHtml = ev.note
-      ? '<div style="font-size:10px;color:var(--text3);margin-top:4px;font-style:italic;">⚠ ' + ev.note + '</div>' : '';
-
-    return '<div class="cal-event-row ' + impCls + '">' +
-      '<div class="cal-event-time">' + ev.time + '</div>' +
-      '<div class="cal-event-body">' +
-        '<div class="cal-event-title">' + flag + ' ' + ev.title + '</div>' +
-        '<div class="cal-event-meta">' +
-          '<span class="cal-event-country">' + (ev.country || '') + '</span>' +
-          '<span class="cal-impact-badge ' + badgeCls + '">' + badgeLabel + '</span>' +
-          actHtml + fcastHtml + prevHtml +
-          (ev.source ? '<span style="font-family:var(--font-mono);font-size:8px;color:var(--text4);">' + ev.source + '</span>' : '') +
-        '</div>' + noteHtml +
-      '</div></div>';
+    return `<div class="cal-event-row ${impCls}">
+      <div class="cal-event-time">${ev.time}</div>
+      <div class="cal-event-body">
+        <span class="cal-event-title">${flag} ${ev.title}</span>
+        <div class="cal-event-meta">
+          <span class="cal-event-country">${ev.country||''}</span>
+          <span class="cal-impact-badge ${badgeCls}">${badgeLbl}</span>
+          ${ev.actual != null && ev.actual !== '' ? `<span class="cal-event-actual">${ev.actual}</span>` : ''}
+          ${ev.source ? `<span style="font-family:var(--font-mono);font-size:7px;color:var(--text4);">${ev.source}</span>` : ''}
+        </div>
+      </div>
+    </div>`;
   }).join('');
 }
 
@@ -5641,6 +5746,7 @@ function simUpdateAccount() {
   if (eqEl)  { eqEl.textContent  = '$' + equity.toFixed(2);   eqEl.style.color  = equity  >= simAccount.startBalance ? 'var(--green)' : 'var(--red)'; }
   if (opEl)  { opEl.textContent  = (openPnl >= 0 ? '+' : '') + '$' + openPnl.toFixed(2);  opEl.style.color  = openPnl  >= 0 ? 'var(--green)' : 'var(--red)'; }
   if (totEl) { totEl.textContent = (totalPnl >= 0 ? '+' : '') + '$' + totalPnl.toFixed(2); totEl.style.color = totalPnl >= 0 ? 'var(--green)' : 'var(--red)'; }
+  renderSimPositionsStrip();
 }
 
 function simAddFunds() {
@@ -5677,7 +5783,8 @@ function renderSimPositions() {
   const el = document.getElementById('sim-open-positions');
   if (!el) return;
   if (!simPositions.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon" style="font-size:24px;">📊</div><div class="empty-text" style="font-size:11px;">No open positions</div></div>';
+    el.innerHTML = '<div class="empty" style="padding:20px 0;"><div class="empty-icon" style="font-size:26px;">📊</div><div class="empty-text" style="font-size:11px;">No open positions</div></div>';
+    renderSimPositionsStrip();
     return;
   }
   el.innerHTML = simPositions.map(p => {
@@ -5686,27 +5793,27 @@ function renderSimPositions() {
     const pnl      = priceDiff * (p.pipVal || 10) * p.lots;
     const pnlColor = pnl >= 0 ? 'var(--green)' : 'var(--red)';
     const dp       = ['BTCUSD','ETHUSD','US30','SPX500','NAS100','XAUUSD','XAGUSD'].includes(p.inst) ? 2 : 5;
-    return `<div style="background:var(--bg2);border-radius:8px;padding:12px 14px;margin-bottom:8px;border-left:3px solid ${p.dir==='BUY'?'var(--green)':'var(--red)'};">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span class="badge badge-${p.dir.toLowerCase()}">${p.dir}</span>
-          <span style="font-family:var(--font-mono);font-size:12px;font-weight:700;">${p.inst}</span>
-          <span style="font-family:var(--font-mono);font-size:10px;color:var(--text3);">${p.lots} lots · 1:${p.leverage}</span>
+    return `<div style="background:var(--bg2);border-radius:7px;padding:10px;margin-bottom:7px;border-left:3px solid ${p.dir==='BUY'?'var(--green)':'var(--red)'};">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="badge badge-${p.dir.toLowerCase()}" style="font-size:8px;">${p.dir}</span>
+          <span style="font-family:var(--font-mono);font-size:11px;font-weight:700;">${p.inst}</span>
+          <span style="font-family:var(--font-mono);font-size:9px;color:var(--text3);">${p.lots}L</span>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-family:var(--font-display);font-size:16px;font-weight:800;color:${pnlColor};">${pnl>=0?'+':''}$${pnl.toFixed(2)}</span>
-          <button onclick="simClosePosition(${p.id})" style="background:var(--red-dim);border:1px solid var(--red);border-radius:5px;color:var(--red);font-family:var(--font-mono);font-size:9px;padding:3px 10px;cursor:pointer;">Close</button>
+        <div style="display:flex;align-items:center;gap:7px;">
+          <span style="font-family:var(--font-display);font-size:15px;font-weight:800;color:${pnlColor};">${pnl>=0?'+':''}$${pnl.toFixed(2)}</span>
+          <button onclick="simClosePosition(${p.id})" style="background:var(--red-dim);border:1px solid var(--red);border-radius:5px;color:var(--red);font-family:var(--font-mono);font-size:8px;padding:2px 7px;cursor:pointer;">Close</button>
         </div>
       </div>
-      <div style="display:flex;gap:14px;font-family:var(--font-mono);font-size:9px;color:var(--text3);">
-        <span>Entry: <strong style="color:var(--text2);">${p.entryPrice.toFixed(dp)}</strong></span>
+      <div style="display:flex;gap:10px;font-family:var(--font-mono);font-size:8px;color:var(--text3);">
+        <span>In: <strong style="color:var(--text2);">${p.entryPrice.toFixed(dp)}</strong></span>
         <span>Now: <strong style="color:var(--text2);">${price.toFixed(dp)}</strong></span>
-        ${p.sl ? `<span>SL: <strong style="color:var(--red);">${p.sl.toFixed(dp)}</strong></span>` : ''}
-        ${p.tp ? `<span>TP: <strong style="color:var(--green);">${p.tp.toFixed(dp)}</strong></span>` : ''}
+        ${p.sl ? `<span style="color:var(--red);">SL:${p.sl.toFixed(dp)}</span>` : ''}
+        ${p.tp ? `<span style="color:var(--green);">TP:${p.tp.toFixed(dp)}</span>` : ''}
       </div>
-      <div style="font-family:var(--font-mono);font-size:8px;color:var(--text4);margin-top:4px;">${p.openTime}</div>
     </div>`;
   }).join('');
+  renderSimPositionsStrip();
 }
 
 function renderSimHistory() {
@@ -5739,12 +5846,152 @@ function renderSimHistory() {
   }).join('');
 }
 
+let simCurrentTF = '15';
+let simChartInit = false;
+
+function simPanelTab(btn, panelId) {
+  document.querySelectorAll('.sim-panel-tab').forEach(b => {
+    b.classList.remove('active');
+    b.style.color = 'var(--text3)';
+    b.style.borderBottomColor = 'transparent';
+  });
+  btn.classList.add('active');
+  btn.style.color = 'var(--gold)';
+  btn.style.borderBottomColor = 'var(--gold)';
+  ['sim-panel-order','sim-panel-positions','sim-panel-history'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = id === panelId ? 'flex' : 'none';
+    if (el && id === panelId) el.style.flexDirection = 'column';
+  });
+}
+
+function simSetTF(btn, tf) {
+  simCurrentTF = tf;
+  document.querySelectorAll('.sim-tf-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  simLoadChart();
+}
+
+function simOnInstrumentChange() {
+  simLoadChart();
+  simUpdatePrice();
+  simCalcRisk();
+}
+
+function simLoadChart() {
+  const inst = document.getElementById('sim-instrument')?.value || 'XAUUSD';
+  const sym  = encodeURIComponent(TV_SYMBOLS[inst] || 'OANDA:XAUUSD');
+  const frame = document.getElementById('sim-chart-frame');
+  if (frame) {
+    frame.src = `https://s.tradingview.com/widgetembed/?frameElementId=sim-chart-frame&symbol=${sym}&interval=${simCurrentTF}&hidesidetoolbar=0&hidetoptoolbar=1&symboledit=0&saveimage=0&toolbarbg=060608&studies=%5B%5D&theme=dark&style=1&timezone=Etc%2FUTC&withdateranges=1&showpopupbutton=0&locale=en`;
+  }
+}
+
+function simQuickBuy() {
+  simSetDir('BUY');
+  simPanelTab(document.getElementById('spt-order'), 'sim-panel-order');
+  simConfirmOrder();
+}
+
+function simQuickSell() {
+  simSetDir('SELL');
+  simPanelTab(document.getElementById('spt-order'), 'sim-panel-order');
+  simConfirmOrder();
+}
+
+function simConfirmOrder() {
+  const inst     = document.getElementById('sim-instrument')?.value || 'XAUUSD';
+  const lots     = parseFloat(document.getElementById('sim-lots')?.value) || 0.01;
+  const sl       = parseFloat(document.getElementById('sim-sl')?.value)   || null;
+  const tp       = parseFloat(document.getElementById('sim-tp')?.value)   || null;
+  const leverage = parseFloat(document.getElementById('sim-leverage')?.value) || 100;
+  const price    = simGetPrice(inst);
+
+  if (!price) { toast('⚠️ No live price available for this instrument'); return; }
+
+  const dp      = ['BTCUSD','ETHUSD','US30','SPX500','NAS100','XAUUSD','XAGUSD'].includes(inst) ? 2 : 5;
+  const pipVal  = inst === 'XAUUSD' ? 100 : inst === 'BTCUSD' || inst === 'ETHUSD' ? 1 : ['US30','SPX500','NAS100'].includes(inst) ? 1 : 10;
+  const margin  = ((price * lots * 100000) / leverage / 1000).toFixed(2);
+  const slDist  = sl ? Math.abs(price - sl) : null;
+  const tpDist  = tp ? Math.abs(tp - price) : null;
+  const maxLoss = slDist ? (slDist * pipVal * lots).toFixed(2) : '—';
+  const rr      = slDist && tpDist ? '1:' + (tpDist / slDist).toFixed(2) : '—';
+
+  const dirColor = simDir === 'BUY' ? 'var(--green)' : 'var(--red)';
+
+  // Build confirm details
+  const details = [
+    `<span style="color:var(--text3);">Instrument</span><span style="color:var(--text);float:right;">${inst}</span>`,
+    `<span style="color:var(--text3);">Direction</span><span style="color:${dirColor};float:right;font-weight:700;">${simDir}</span>`,
+    `<span style="color:var(--text3);">Entry Price</span><span style="color:var(--gold);float:right;">${price.toFixed(dp)}</span>`,
+    `<span style="color:var(--text3);">Lot Size</span><span style="color:var(--text);float:right;">${lots}</span>`,
+    `<span style="color:var(--text3);">Leverage</span><span style="color:var(--text);float:right;">1:${leverage === 999999 ? 'Unlimited' : leverage}</span>`,
+    sl ? `<span style="color:var(--red);">Stop Loss</span><span style="color:var(--red);float:right;">${sl.toFixed(dp)}</span>` : '',
+    tp ? `<span style="color:var(--green);">Take Profit</span><span style="color:var(--green);float:right;">${tp.toFixed(dp)}</span>` : '',
+    `<span style="color:var(--text3);">Margin req.</span><span style="color:var(--gold);float:right;">$${margin}</span>`,
+    slDist ? `<span style="color:var(--text3);">Max loss</span><span style="color:var(--red);float:right;">$${maxLoss}</span>` : '',
+    (rr !== '—') ? `<span style="color:var(--text3);">R:R ratio</span><span style="color:var(--blue);float:right;">${rr}</span>` : '',
+  ].filter(Boolean).map(row => `<div style="display:block;">${row}</div>`).join('');
+
+  document.getElementById('sim-confirm-title').textContent = `Confirm ${simDir} — ${inst}`;
+  document.getElementById('sim-confirm-title').style.color = dirColor;
+  document.getElementById('sim-confirm-details').innerHTML = details;
+  const execBtn = document.getElementById('sim-confirm-exec');
+  execBtn.style.background = simDir === 'BUY' ? 'linear-gradient(135deg,#00E87A,#00A855)' : 'linear-gradient(135deg,#FF3D5A,#CC0022)';
+  execBtn.style.color = simDir === 'BUY' ? '#000' : '#fff';
+  execBtn.textContent = `✓ ${simDir} ${lots} lots @ ${price.toFixed(dp)}`;
+
+  const modal = document.getElementById('sim-confirm-modal');
+  if (modal) { modal.style.display = 'flex'; }
+}
+
+function simCancelOrder() {
+  const modal = document.getElementById('sim-confirm-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function simExecuteOrder() {
+  simCancelOrder();
+  simPlaceOrder();
+}
+
+function renderSimPositionsStrip() {
+  const strip   = document.getElementById('sim-positions-strip');
+  const content = document.getElementById('sim-strip-content');
+  if (!strip || !content) return;
+  if (!simPositions.length) { strip.style.display = 'none'; return; }
+  strip.style.display = 'block';
+  content.innerHTML = simPositions.map(p => {
+    const price    = simGetPrice(p.inst) || p.entryPrice;
+    const priceDiff= p.dir === 'BUY' ? price - p.entryPrice : p.entryPrice - price;
+    const pnl      = priceDiff * (p.pipVal || 10) * p.lots;
+    const col      = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+    const dp       = ['BTCUSD','ETHUSD','US30','SPX500','NAS100','XAUUSD','XAGUSD'].includes(p.inst) ? 2 : 5;
+    return `<span style="display:inline-flex;align-items:center;gap:5px;margin-right:14px;background:var(--bg2);border-radius:5px;padding:3px 8px;border:1px solid ${pnl>=0?'var(--green-dim)':'var(--red-dim)'};">
+      <span style="color:${p.dir==='BUY'?'var(--green)':'var(--red)'};">${p.dir}</span>
+      <span style="color:var(--text2);">${p.inst}</span>
+      <span style="color:var(--text3);">${p.lots}L</span>
+      <span style="color:${col};font-weight:700;">${pnl>=0?'+':''}$${pnl.toFixed(2)}</span>
+      <button onclick="simClosePosition(${p.id})" style="background:none;border:none;color:var(--text4);cursor:pointer;font-size:10px;padding:0 2px;line-height:1;" title="Close">✕</button>
+    </span>`;
+  }).join('');
+}
+
 function initSimTrader() {
   simUpdateAccount();
   renderSimPositions();
   renderSimHistory();
   simUpdatePrice();
   simSetDir('BUY');
+  // Load chart on first visit or when switching instruments
+  simLoadChart();
+  // Ensure correct CSS for full-height
+  const mc  = document.querySelector('.main-content');
+  const rp  = document.getElementById('right-panel');
+  const app = document.getElementById('app');
+  if (mc)  { mc.style.padding = '0'; mc.style.overflow = 'hidden'; }
+  if (rp)  rp.style.display = 'none';
+  if (app) app.classList.add('chart-mode');
   // Refresh open position P&L every 5 seconds
   clearInterval(simPriceTimer);
   simPriceTimer = setInterval(() => {
