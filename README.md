@@ -1,77 +1,140 @@
 # Wingman
 
-A self-hosted trading intelligence tool covering 54 instruments across multi-timeframe technical analysis, real-time market depth, a virtual trading simulator, a trade journal with AI coaching, and an economic event calendar.
-
-## Problem Statement
-
-Retail traders typically work with fragmented tools: a charting platform for technicals, a separate news feed, a spreadsheet journal, and no coherent view of institutional positioning or cross-asset correlation. Professional-grade tooling requires expensive subscriptions, and most AI-integrated trading tools add AI as a surface feature without connecting it to structured market data. Wingman consolidates analysis, simulation, journalling, and AI reasoning into a single self-hosted file with no server dependency, so traders keep full control of their API keys, their data, and their workflow.
-
-## Demo / Screenshot
+An intelligent trader training platform covering 54 instruments. Simulated trading, AI trade feedback, behavioural coaching, performance profiling, and a 7-stage Academy journey — all free, no account required.
 
 **Live:** [https://abuj07.github.io/Wingman/](https://abuj07.github.io/Wingman/)
 
+---
+
+## What Wingman Is
+
+Wingman is a **trader training platform**, not a signals service or broker. Everything runs in a simulated environment. No real funds are ever used.
+
+The core philosophy: the Sim Trader is the classroom. AI grades real practice trades, not quizzes. Traders progress through structured stages, receive feedback on every trade, and build verifiable skills before risking real capital.
+
+> This platform does not provide financial advice. All trading is simulated and for educational purposes only.
+
+---
+
+## Features
+
+### Market Scan
+Multi-timeframe analysis across 54 instruments (metals, forex majors and minors, crypto, indices, energy). Returns bias, entry zones, stop loss, take profit, and a plain English explanation. Cross-asset correlation activates when scanning multiple pairs simultaneously.
+
+### Sim Trader
+Full virtual trading simulator with a $10,000 starting account. BUY and SELL order entry, configurable stop loss and take profit, leverage options, partial close, live P&L tracking, and complete trade history with win rate.
+
+### Trading Academy (7-Stage Journey)
+A structured progression system where each stage must be passed before the next unlocks:
+
+| Stage | Focus | Requirement |
+|-------|-------|-------------|
+| 1 | Foundation | 5-question knowledge check, pass 4/5 |
+| 2 | Risk First | 10 graded sim trades, correct sizing |
+| 3 | Reading the Market | 15 trades with HTF bias alignment |
+| 4 | The Setup | 15 trades, average confluence score 65+ |
+| 5 | Managing the Trade | 20 trades, hold ratio above 1.2 |
+| 6 | Consistency | 30 trades, zero behavioural flags |
+| 7 | Graduation | 50-trade final assessment, Trader Passport |
+
+### Behavioural Detectors
+Six live detectors monitor: revenge trading, overtrading, FOMO entries, early exits, stop widening, and tilt patterns (2+ flags in one session).
+
+### AI Trade Review
+Every closed sim trade generates a review card: entry quality score, stop placement score, exit quality, behavioural flags, what was done well, and what to improve.
+
+### Performance Profiling
+Win rate, average risk:reward, profit factor, session heatmap, instrument breakdown, and regime performance (trending vs ranging vs volatile).
+
+### Additional Tools
+- **Risk Calculator** with AI sanity check
+- **Market Depth** combining OANDA sentiment, Binance order book, CFTC COT data, and CBOE options flow
+- **Trade Journal** with AI coaching per logged trade
+- **Chart Analysis** via screenshot upload
+- **Price Alerts**
+- **Session Heatmap**
+- **Economic Calendar** via Forex Factory
+
+---
+
 ## Tech Stack
 
-| Layer | Technologies |
-|---|---|
-| Language | JavaScript |
-| Frontend | HTML, CSS, vanilla JavaScript (single file, no framework, no build step) |
-| AI and LLM | Claude API (primary: market scan, trade review, chart analysis), Gemini Flash or Grok xAI (sentiment, optional) |
-| Infrastructure | GitHub Pages (hosted), or self-hosted via any static file server |
+| Layer | Detail |
+|-------|--------|
+| Language | Vanilla JavaScript |
+| Frontend | Single HTML file, no framework, no build step |
+| AI | Claude API (market scan, trade review, chart analysis), Grok xAI (optional sentiment) |
+| Prices | Binance WebSocket (crypto), metals.live (metals), exchangerate.host (forex fallback) |
+| Charts | TradingView widget (BINANCE:BTCUSDT default) |
+| Hosting | GitHub Pages or any static file server |
 
-## Architecture Overview
+---
 
-Wingman is a single HTML file of approximately 5,900 lines. There is no backend, no build process, and no server. The browser communicates directly with external APIs using keys that the user enters and stores in `localStorage`. All user data, including trade history, simulator account state, price alerts, settings, and API keys, persists in `localStorage` and never leaves the device. The data flow is entirely client-side: the Anthropic API handles market scan reasoning, trade review, and chart image analysis; the Twelve Data API provides live candlestick data for multi-timeframe technical analysis; Binance WebSocket streams real-time crypto prices; the Binance REST API supplies live order book depth; exchangerate.host provides a forex price fallback; the TradingView widget powers the live chart and economic calendar; Finnhub provides news headlines and calendar event boosting; the CBOE API supplies delayed options flow data; OANDA provides retail sentiment; and the CFTC makes COT institutional positioning data available as public domain. Each data source is accessed independently from the browser with no intermediary proxy.
+## Architecture
 
-## Key Features
+Single HTML file (~370KB). No backend, no build process. The browser communicates directly with external APIs. All user data (trades, settings, alerts) persists in `localStorage` and never leaves the device. AI keys are optional — the platform is fully usable without them via the server-side worker.
 
-- A multi-timeframe market scan across 54 instruments (metals, forex majors and minors, crypto, indices, energy, soft commodities, and derived pairs) that produces an overall verdict, market bias, entry zones, stop loss, take profit, lot size, and a plain English explanation. Cross-asset correlation intelligence activates when scanning multiple instruments simultaneously.
-- A full virtual trading simulator with a $10,000 starting account, BUY and SELL order entry, configurable stop loss and take profit, leverage from 1:10 to 1:unlimited, partial position close, live P&L tracking, a complete trade history with win rate, and a confirmation modal showing margin and maximum risk before execution.
-- A live Market Depth view combining OANDA retail long and short sentiment ratios with a contrarian signal, a Binance real-time 10-level order book refreshing every 10 seconds, CFTC COT institutional positioning for eight major markets, and CBOE put and call ratios with a VIX fear gauge.
-- A Trade Journal with AI-assisted trade coaching: each logged trade receives a grade, technical assessment, psychology analysis, pattern detection across the journal history, and a specific improvement focus from Claude.
-- A chart analysis feature accepting any uploaded screenshot and returning a full technical breakdown covering trend, structure, support and resistance, candlestick patterns, and potential setups, with a read-aloud option.
+---
 
-## How to Run Locally
-
-### Prerequisites
-
-- A modern web browser.
-- An Anthropic API key (required for market scan, trade review, and chart analysis).
-- A Twelve Data API key (recommended, free tier gives 800 calls per day, enables live candle data).
-- A Grok or Gemini Flash API key (optional, enables live sentiment analysis).
-
-### Setup
+## Running Locally
 
 ```bash
-# 1. Clone the repository
 git clone https://github.com/abuj07/Wingman.git
 cd Wingman
-```
-
-### Run
-
-```bash
-# Option 1: Open directly in a browser
-open index.html
-
-# Option 2: Serve locally
 npx serve .
 # Visit http://localhost:3000
 ```
 
-Enter your Claude API key in the Settings panel on first launch. Twelve Data and sentiment keys are optional and can be added later.
+Or just open `index.html` directly in a browser.
 
-## AI Integration
+No API keys required to launch. Add a Grok key in Settings for live sentiment analysis.
 
-Wingman uses the Claude API as its primary intelligence layer, called directly from the browser. The market scan sends candlestick data, instrument metadata, and user-defined parameters to Claude with a structured prompt requesting an overall verdict, bias, specific entry zones, stop loss, take profit, and a plain English explanation formatted for copy-paste. Trade review prompts send the full trade parameters and any journal notes to Claude, which returns a structured coaching response covering technical execution, psychology, and pattern recognition. Chart analysis sends a base64-encoded image directly to Claude's vision capability and requests a technical breakdown. Dual sentiment uses either Gemini Flash or Grok to process live news and social data alongside the technical scan, with the result injected into the scan output. All API keys are stored in `localStorage` and sent directly from the browser to the respective APIs; no key ever passes through a server. This repository corresponds to the Wingman product in Osi's portfolio.
+---
 
-## Status
+## Deployment (Go-Live)
 
-🟢 **Live** — deployed and publicly accessible at [https://abuj07.github.io/Wingman/](https://abuj07.github.io/Wingman/).
+### GitHub Pages (current)
+The site is already live at [https://abuj07.github.io/Wingman/](https://abuj07.github.io/Wingman/) via GitHub Pages. Pushing to `main` updates the live site automatically.
+
+### Custom Domain
+1. Add a `CNAME` file to the repo root containing your domain (e.g. `wingman.trade`)
+2. In your DNS provider, add a `CNAME` record pointing to `abuj07.github.io`
+3. In GitHub repo Settings > Pages, set your custom domain and enable HTTPS
+
+### Vercel (recommended for future backend features)
+```bash
+npm i -g vercel
+vercel
+```
+Environment variables for server-side AI keys go in the Vercel dashboard under Project > Settings > Environment Variables.
+
+---
+
+## Environment Variables (Server-Side)
+
+When deploying with a backend (Vercel/Cloudflare Worker), set these as server-side secrets — never in the browser:
+
+| Variable | Purpose |
+|----------|---------|
+| `ANTHROPIC_API_KEY` | Claude AI analysis |
+| `GEMINI_API_KEY` | Gemini Flash sentiment (fallback) |
+| `TWELVEDATA_API_KEY` | Forex candle data |
+
+The Grok API key remains user-supplied (entered in Settings), as it powers personal sentiment preferences.
+
+---
+
+## Legal
+
+Wingman is not authorised or regulated by the Financial Conduct Authority (FCA) or any financial regulatory body. It does not constitute financial advice or an offer to buy or sell any financial instrument. All trading is simulated and for educational purposes only.
+
+See the in-app Privacy Policy and Terms & Conditions pages for full detail.
+
+---
 
 ## Author
 
-**Osi Abu** — Full Stack AI Engineer and AI Builder, London.
-🌐 [osiabu.dev](https://www.osiabu.dev)
-💼 [LinkedIn](https://www.linkedin.com/in/osiabu)
-🐙 [GitHub](https://www.github.com/abuj07)
+**Osi Abu** — Full Stack AI Engineer, London.
+- [osiabu.dev](https://www.osiabu.dev)
+- [LinkedIn](https://www.linkedin.com/in/osiabu)
+- [GitHub](https://www.github.com/abuj07)
