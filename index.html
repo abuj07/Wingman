@@ -1097,19 +1097,21 @@ select.input option { background:#111116; color:#E8E8F0; }
       <span class="session-badge-time" id="clock-time">--:--</span>
     </div>
 
-    <div class="nav-section-label">Trading</div>
-    <button class="nav-item" id="nav-scan" onclick="navigate('scan',this)"><span class="nav-item-icon">📡</span>Market Scan</button>
+    <div class="nav-section-label">Training</div>
     <button class="nav-item" onclick="navigate('academy',this)"><span class="nav-item-icon">🎓</span>Trading Academy</button>
     <button class="nav-item" onclick="navigate('simtrader',this)"><span class="nav-item-icon">🎮</span>Sim Trader</button>
-    <button class="nav-item" onclick="navigate('calc',this)"><span class="nav-item-icon">🎯</span>Risk Calculator</button>
 
-    <div class="nav-section-label" style="margin-top:6px;">Markets &amp; Analysis</div>
+    <div class="nav-section-label" style="margin-top:6px;">Markets</div>
+    <button class="nav-item" id="nav-scan" onclick="navigate('scan',this)"><span class="nav-item-icon">📡</span>Market Scan</button>
+    <button class="nav-item" onclick="navigate('screenshot',this)"><span class="nav-item-icon">📸</span>Chart Analysis</button>
     <button class="nav-item" onclick="navigate('depth',this)"><span class="nav-item-icon">🌊</span>Market Depth</button>
     <button class="nav-item" onclick="navigate('calendar',this)"><span class="nav-item-icon">📅</span>Event Calendar</button>
-    <button class="nav-item" onclick="navigate('journal',this)"><span class="nav-item-icon">📓</span>Trade Journal</button>
     <button class="nav-item" onclick="navigate('heatmap',this)"><span class="nav-item-icon">🔥</span>Session Heatmap</button>
     <button class="nav-item" onclick="navigate('alerts',this)"><span class="nav-item-icon">🔔</span>Price Alerts</button>
-    <button class="nav-item" onclick="navigate('screenshot',this)"><span class="nav-item-icon">📸</span>Chart Analysis</button>
+
+    <div class="nav-section-label" style="margin-top:6px;">Tools</div>
+    <button class="nav-item" onclick="navigate('calc',this)"><span class="nav-item-icon">🎯</span>Risk Calculator</button>
+    <button class="nav-item" onclick="navigate('journal',this)"><span class="nav-item-icon">📓</span>Trade Journal</button>
     <button class="nav-item" onclick="navigate('rules',this)"><span class="nav-item-icon">📋</span>Checklist</button>
 
     <div class="nav-section-label" style="margin-top:6px;">Legal</div>
@@ -2443,10 +2445,10 @@ select.input option { background:#111116; color:#E8E8F0; }
 
   <!-- MOBILE NAV -->
   <div class="mobile-nav">
-    <button class="mobile-nav-item active" onclick="navigate('scan',this)"><span class="mobile-nav-icon">📡</span>SCAN</button>
-    <button class="mobile-nav-item" onclick="navigate('academy',this)"><span class="mobile-nav-icon">🎓</span>ACADEMY</button>
+    <button class="mobile-nav-item active" onclick="navigate('academy',this)"><span class="mobile-nav-icon">🎓</span>ACADEMY</button>
     <button class="mobile-nav-item" onclick="navigate('simtrader',this)"><span class="mobile-nav-icon">🎮</span>SIM</button>
-    <button class="mobile-nav-item" onclick="navigate('depth',this)"><span class="mobile-nav-icon">🌊</span>DEPTH</button>
+    <button class="mobile-nav-item" onclick="navigate('scan',this)"><span class="mobile-nav-icon">📡</span>SCAN</button>
+    <button class="mobile-nav-item" onclick="navigate('screenshot',this)"><span class="mobile-nav-icon">📸</span>CHARTS</button>
     <button class="mobile-nav-item" onclick="navigate('journal',this)"><span class="mobile-nav-icon">📓</span>JOURNAL</button>
   </div>
 
