@@ -3497,6 +3497,65 @@ function launchApp() {
 }
 
 // ═══════════════════════════════════════════
+// TRADINGVIEW CHART PRICE SYNC
+// Listen for postMessage events broadcast by the TradingView widgetembed iframe.
+// TV sends quote updates as: { name: "quoteUpdate", data: { lp: <last price>, ... } }
+// We pipe these directly into livePriceCache so simGetPrice (and therefore all
+// open P&L calculations) use the exact same price the chart is displaying.
+// ═══════════════════════════════════════════
+(function setupTVPriceSync() {
+  // Reverse-map from TV symbol string → our pair id (e.g. "BINANCE:BTCUSDT" → "BTCUSD")
+  const tvToPairId = {};
+  if (typeof TV_SYMBOLS !== 'undefined') {
+    Object.entries(TV_SYMBOLS).forEach(([pairId, tvSym]) => {
+      tvToPairId[tvSym.toUpperCase()] = pairId;
+      // Also map without exchange prefix (e.g. "BTCUSDT" → "BTCUSD")
+      const bare = tvSym.split(':').pop();
+      if (bare) tvToPairId[bare.toUpperCase()] = pairId;
+    });
+  }
+
+  let _tvSidebarDebounce = null;
+
+  window.addEventListener('message', (evt) => {
+    // TradingView embeds come from tradingview.com
+    if (!evt.origin.includes('tradingview.com')) return;
+
+    let msg;
+    try { msg = typeof evt.data === 'string' ? JSON.parse(evt.data) : evt.data; }
+    catch { return; }
+
+    // Quote update payload
+    if (msg && msg.name === 'quoteUpdate' && msg.data) {
+      const d = msg.data;
+      const price = parseFloat(d.lp || d.last_price || d.close);
+      if (isNaN(price) || price <= 0) return;
+
+      // Identify which pair this quote belongs to
+      const rawSym = (d.symbol || d.name || '').toUpperCase();
+      const pairId = tvToPairId[rawSym] || currentChartPair;
+
+      if (pairId) {
+        livePriceCache[pairId] = price;
+        priceSourceCache[pairId] = 'tv';
+      }
+
+      // Also always update currentChartPair with whatever the chart shows
+      if (currentChartPair) {
+        livePriceCache[currentChartPair] = price;
+        priceSourceCache[currentChartPair] = 'tv';
+      }
+
+      // Debounced sidebar refresh — at most once per second from TV ticks
+      clearTimeout(_tvSidebarDebounce);
+      _tvSidebarDebounce = setTimeout(() => {
+        updateSidebarStats();
+      }, 1000);
+    }
+  });
+})();
+
+// ═══════════════════════════════════════════
 // KEYS
 // ═══════════════════════════════════════════
 
