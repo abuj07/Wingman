@@ -2499,20 +2499,20 @@ const INSTRUMENTS = {
     { id:'LINKUSD', label:'LINK/USD', name:'Chainlink',     td:'LINK/USD',     tv:'COINBASE:LINKUSD',  corr:'BTCUSD' },
   ],
   'Indices': [
-    { id:'US30',    label:'US30',     name:'Dow Jones',     td:'DJI',          tv:'FOREXCOM:DJI',      corr:'SPX500,NAS100' },
-    { id:'SPX500',  label:'SPX500',   name:'S&P 500',       td:'SPX',          tv:'FOREXCOM:SPX500',   corr:'US30,NAS100,BTCUSD' },
-    { id:'NAS100',  label:'NAS100',   name:'Nasdaq 100',    td:'NDX',          tv:'FOREXCOM:NAS100',   corr:'SPX500,BTCUSD' },
-    { id:'UK100',   label:'UK100',    name:'FTSE 100',      td:'FTSE',         tv:'FOREXCOM:UK100',    corr:'GBPUSD' },
-    { id:'GER40',   label:'GER40',    name:'DAX 40',        td:'DAX',          tv:'FOREXCOM:GER40',    corr:'EURUSD' },
-    { id:'JPN225',  label:'JPN225',   name:'Nikkei 225',    td:'N225',         tv:'FOREXCOM:JPN225',   corr:'USDJPY' },
-    { id:'AUS200',  label:'AUS200',   name:'ASX 200',       td:'AS51',         tv:'FOREXCOM:AUS200',   corr:'AUDUSD,XCUUSD' },
-    { id:'HK50',    label:'HK50',     name:'Hang Seng',     td:'HSI',          tv:'FOREXCOM:HK50',     corr:'AUDUSD' },
+    { id:'US30',    label:'US30',     name:'Dow Jones',     td:'DIA',          tv:'FOREXCOM:DJI',      corr:'SPX500,NAS100' },
+    { id:'SPX500',  label:'SPX500',   name:'S&P 500',       td:'SPY',          tv:'FOREXCOM:SPX500',   corr:'US30,NAS100,BTCUSD' },
+    { id:'NAS100',  label:'NAS100',   name:'Nasdaq 100',    td:'QQQ',          tv:'FOREXCOM:NAS100',   corr:'SPX500,BTCUSD' },
+    { id:'UK100',   label:'UK100',    name:'FTSE 100',      td:'ISF',          tv:'FOREXCOM:UK100',    corr:'GBPUSD' },
+    { id:'GER40',   label:'GER40',    name:'DAX 40',        td:'EWG',          tv:'FOREXCOM:GER40',    corr:'EURUSD' },
+    { id:'JPN225',  label:'JPN225',   name:'Nikkei 225',    td:'EWJ',          tv:'FOREXCOM:JPN225',   corr:'USDJPY' },
+    { id:'AUS200',  label:'AUS200',   name:'ASX 200',       td:'EWA',          tv:'FOREXCOM:AUS200',   corr:'AUDUSD,XCUUSD' },
+    { id:'HK50',    label:'HK50',     name:'Hang Seng',     td:'EWH',          tv:'FOREXCOM:HK50',     corr:'AUDUSD' },
   ],
   'Energy': [
     { id:'USOIL',   label:'WTI',      name:'Crude Oil WTI', td:'WTI/USD',      tv:'NYMEX:CL1!',        corr:'USDCAD,CADJPY' },
     { id:'UKOIL',   label:'BRENT',    name:'Brent Crude',   td:'BRENT/USD',    tv:'NYMEX:BB1!',        corr:'USOIL,GBPUSD' },
-    { id:'NATGAS',  label:'NATGAS',   name:'Natural Gas',   td:'NATURAL_GAS',  tv:'NYMEX:NG1!',        corr:'USOIL' },
-    { id:'GASUSD',  label:'GASOLINE', name:'Gasoline',      td:'GASOLINE',     tv:'NYMEX:RB1!',        corr:'USOIL' },
+    { id:'NATGAS',  label:'NATGAS',   name:'Natural Gas',   td:'NATURAL_GAS/USD', tv:'NYMEX:NG1!',     corr:'USOIL' },
+    { id:'GASUSD',  label:'GASOLINE', name:'Gasoline',      td:'GASOLINE/USD', tv:'NYMEX:RB1!',        corr:'USOIL' },
   ],
   'Softs & Ags': [
     { id:'COFFEE',  label:'COFFEE',   name:'Coffee',        td:'COFFEE',       tv:'ICEUS:KC1!',        corr:'' },
@@ -3829,6 +3829,10 @@ async function fetchLivePrices() {
   const nonCryptoPairs = allPairs.filter(p => !BINANCE_SYMBOLS[p]);
 
   // ── Step 2: Non-crypto → /api/prices (TwelveData + open.er-api.com, Redis cached) ──
+  // ETF proxies are used for indices (DIA≈US30/100, SPY≈SPX500/10, QQQ≈NAS100/~43)
+  // Scale factors convert ETF price → approximate index point value
+  const ETF_SCALE = { US30: 100, SPX500: 10, NAS100: 43, UK100: 110, GER40: 50, JPN225: 650, AUS200: 55, HK50: 700 };
+
   if (nonCryptoPairs.length) {
     const symbols = nonCryptoPairs.map(p => TD_SYMBOLS[p]).filter(Boolean);
     if (symbols.length) {
@@ -3838,8 +3842,10 @@ async function fetchLivePrices() {
           const priceMap = await res.json();
           nonCryptoPairs.forEach(p => {
             const tdSym = TD_SYMBOLS[p];
-            const price = tdSym ? priceMap[tdSym] : undefined;
+            let price = tdSym ? priceMap[tdSym] : undefined;
             if (price && !isNaN(price)) {
+              // Apply scale factor for ETF-proxied indices
+              if (ETF_SCALE[p]) price = price * ETF_SCALE[p];
               livePriceCache[p] = price;
               priceSourceCache[p] = priceMap._source || 'td';
               updatePriceTileFromCache(p, price);
