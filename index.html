@@ -169,6 +169,7 @@ select.input option { background:#111116; color:#E8E8F0; }
 @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
 @keyframes shimmer { 0% { background-position:-200% 0; } 100% { background-position:200% 0; } }
+@keyframes ticker-scroll { 0% { transform:translateX(0); } 100% { transform:translateX(-50%); } }
 .fade-up { animation:fadeUp 0.35s ease forwards; }
 .pulse { animation:pulse 1.5s ease-in-out infinite; }
 .spinner {
@@ -272,8 +273,8 @@ select.input option { background:#111116; color:#E8E8F0; }
 
 /* ─── SIDEBAR ITEMS ─── */
 .sidebar-brand {
-  display:flex; align-items:center; gap:10px;
-  padding:8px 8px 16px; margin-bottom:8px;
+  display:flex; align-items:center; justify-content:center;
+  padding:16px 12px 16px; margin-bottom:8px;
   border-bottom:1px solid var(--border);
 }
 .sidebar-brand-icon {
@@ -319,9 +320,14 @@ select.input option { background:#111116; color:#E8E8F0; }
 
 /* ─── PRICE TICKER ─── */
 .price-ticker {
-  display:flex; gap:12px; overflow-x:auto; padding-bottom:2px;
-  -webkit-overflow-scrolling:touch; scrollbar-width:none;
+  display:flex; gap:12px; overflow:hidden; padding-bottom:2px;
+  min-width:0; position:relative;
 }
+.price-ticker-track {
+  display:flex; gap:12px; flex-shrink:0;
+  animation:ticker-scroll 30s linear infinite;
+}
+.price-ticker-track:hover { animation-play-state:paused; }
 .price-ticker::-webkit-scrollbar { display:none; }
 .price-tile {
   background:var(--bg2); border:1px solid var(--border2);
@@ -1007,7 +1013,7 @@ select.input option { background:#111116; color:#E8E8F0; }
   <!-- MOBILE TOP BAR -->
   <div class="mobile-topbar">
     <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="navigate('scan',null)">
-      <img src="wingmanlogo.png" alt="Wingman" style="height:42px;width:auto;display:block;">
+      <img src="wingmanlogo.png" alt="Wingman" style="height:48px;width:auto;display:block;">
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
       <div id="mobile-clock" style="font-family:var(--font-mono);font-size:10px;color:var(--text3);text-align:right;"></div>
@@ -1018,7 +1024,7 @@ select.input option { background:#111116; color:#E8E8F0; }
   <!-- SIDEBAR (tablet + desktop) -->
   <div class="sidebar">
     <div class="sidebar-brand" style="cursor:pointer;" onclick="navigate('scan',null)">
-      <img src="wingmanlogo.png" alt="Wingman" style="width:110px;height:auto;display:block;margin-bottom:2px;">
+      <img src="wingmanlogo.png" alt="Wingman" style="width:80%;max-width:180px;height:auto;display:block;margin:0 auto;">
     </div>
 
     <!-- Session badge -->
@@ -2568,6 +2574,9 @@ const livePriceCache = {};
 const priceSourceCache = {};
 
 // ─── BINANCE WEBSOCKET ───────────────────────────────────────────────────────
+// Debounce timer for sidebar refreshes triggered by Binance WS ticks
+let _binanceSidebarDebounce = null;
+
 function connectBinancePair(pairId) {
   const bSym = BINANCE_SYMBOLS[pairId];
   if (!bSym || binanceWsSockets[pairId]) return;
@@ -2579,6 +2588,9 @@ function connectBinancePair(pairId) {
       livePriceCache[pairId] = price;
       priceSourceCache[pairId] = 'binance';
       updatePriceTileFromCache(pairId, price);
+      // Debounced sidebar refresh — at most once per 2s across all crypto ticks
+      clearTimeout(_binanceSidebarDebounce);
+      _binanceSidebarDebounce = setTimeout(updateSidebarStats, 2000);
     }
   };
   ws.onerror = () => { console.warn('Binance WS error for', pairId); };
@@ -2643,19 +2655,23 @@ function rebuildPriceStrip() {
   const pairs = HOME_PRICE_PAIRS;
   const mobile = document.getElementById('mobile-price-tiles');
   if (!mobile) return;
-  mobile.innerHTML = pairs.map(p => {
+  const lowDpPairs = ['BTCUSD','ETHUSD','SOLUSD','BNBUSD','ADAUSD','DOTUSD','LINKUSD','XRPUSD','US30','SPX500','NAS100','UK100','GER40','JPN225','AUS200','HK50','XAUUSD','XAGUSD','XPTUSD','XCUUSD','USOIL','UKOIL','NATGAS','COFFEE','COCOA','SUGAR','WHEAT','CORN','SOYBEAN','COTTON','LUMBER'];
+  const makeTile = (p, withId) => {
     const price = livePriceCache[p];
-    const lowDpPairs = ['BTCUSD','ETHUSD','SOLUSD','BNBUSD','ADAUSD','DOTUSD','LINKUSD','XRPUSD','US30','SPX500','NAS100','UK100','GER40','JPN225','AUS200','HK50','XAUUSD','XAGUSD','XPTUSD','XCUUSD','USOIL','UKOIL','NATGAS','COFFEE','COCOA','SUGAR','WHEAT','CORN','SOYBEAN','COTTON','LUMBER'];
     const dp = lowDpPairs.includes(p) ? 2 : 5;
     const src = priceSourceCache[p] || '';
     const srcBadge = src === 'binance' ? '<span style="font-size:7px;color:#F0B90B;margin-left:3px;">B</span>'
                    : src === 'er'      ? '<span style="font-size:7px;color:#00C8FF;margin-left:3px;">ER</span>'
                    : '';
-    return `<div class="price-tile" id="ptile-${p}" style="min-width:100px;">
+    return `<div class="price-tile"${withId ? ` id="ptile-${p}"` : ''} style="min-width:100px;">
       <div class="price-tile-pair">${p}${srcBadge}</div>
       <div class="price-tile-val">${price ? price.toFixed(dp) : '—'}</div>
     </div>`;
-  }).join('');
+  };
+  // Two copies for seamless loop
+  const tilesA = pairs.map(p => makeTile(p, true)).join('');
+  const tilesB = pairs.map(p => makeTile(p, false)).join('');
+  mobile.innerHTML = `<div class="price-ticker-track">${tilesA}${tilesB}</div>`;
 }
 
 // ═══════════════════════════════════════════
@@ -3205,7 +3221,7 @@ const ACADEMY_CONTENT = {
       { q: 'Two distinct valid setups form simultaneously on GBP/USD and EUR/JPY. You enter both at the same time with full size on each. Both move against you. You add a third position on AUD/USD. This sequence describes:', opts: ['Good diversification strategy','Overtrading and early tilt','Normal multi-pair trading','Conservative risk management'], ans: 1, exp: 'Entering multiple full-size positions simultaneously and then adding a third despite drawdown is overtrading. Tilt is imminent when the urge to trade is driven by loss aversion rather than valid setups.' },
       { q: 'EUR/USD has been rallying strongly for 4 hours. You have no setup — no confluence, no key level, no structure. But price is moving and you fear missing it. You enter long. This is:', opts: ['HTF bias alignment','Breakout trading','FOMO Entry','Momentum trading'], ans: 2, exp: 'Fear of Missing Out (FOMO) causes entries without a valid setup, typically near the exhaustion of a move. These entries often result in buying the top or selling the bottom of a momentum run.' },
       { q: 'What is the correct response when you trigger 2 or more behavioural flags in a single trading session?', opts: ['Increase position size to recover losses faster','Continue trading but only take A-grade setups','Stop trading for the rest of the session — you are in tilt','Call a financial advisor'], ans: 2, exp: 'Tilt is a compound state where multiple behavioural failures compound. The only correct response is to remove yourself from the market for the rest of that day, journal what happened, and return fresh.' },
-      { q: 'You have a daily maximum loss rule of 3%. Your account is $10,000. You have already lost $280 today. A high-quality setup appears. What should you do?', opts: ['Take the trade — it is a valid setup and you have not hit the limit yet','Take half size only since you are close to the daily limit','Skip the trade — you are too close to the limit to take another risk','Increase size to try to recover the day's losses'], ans: 0, exp: 'You have lost 2.8% — still within the 3% rule. A genuinely valid setup can be taken with correct sizing. However, if the trade triggers your remaining 0.2%, stop for the day regardless of outcome.' }
+      { q: 'You have a daily maximum loss rule of 3%. Your account is $10,000. You have already lost $280 today. A high-quality setup appears. What should you do?', opts: ['Take the trade — it is a valid setup and you have not hit the limit yet','Take half size only since you are close to the daily limit','Skip the trade — you are too close to the limit to take another risk','Increase size to try to recover the day\'s losses'], ans: 0, exp: 'You have lost 2.8% — still within the 3% rule. A genuinely valid setup can be taken with correct sizing. However, if the trade triggers your remaining 0.2%, stop for the day regardless of outcome.' }
     ]
   },
 
@@ -3784,6 +3800,9 @@ async function fetchLivePrices() {
   if (mStamp)  mStamp.textContent = new Date().toLocaleTimeString();
   if (liveDot) liveDot.style.display = 'block';
   updateChartLivePrice(currentChartPair);
+
+  // ── Refresh right-panel open P&L with latest non-crypto prices ────────────
+  updateSidebarStats();
 
   // ── Schedule next poll (Binance WS handles crypto continuously) ───────────
   clearTimeout(priceRefreshTimer);
@@ -4836,10 +4855,12 @@ function renderTrades() {
 }
 
 function updateSidebarStats() {
-  // Pull stats from sim trader
+  // Pull stats from sim trader — use in-memory objects (not stale localStorage snapshots)
   const simTrades = JSON.parse(localStorage.getItem('wm_sim_trades') || '[]');
-  const simAcc    = JSON.parse(localStorage.getItem('wm_sim_account') || 'null') || { balance:10000, startBalance:10000 };
-  const simPos    = JSON.parse(localStorage.getItem('wm_sim_positions') || '[]');
+  const simAcc    = (typeof simAccount !== 'undefined' && simAccount) ? simAccount
+                    : (JSON.parse(localStorage.getItem('wm_sim_account') || 'null') || { balance:10000, startBalance:10000 });
+  const simPos    = (typeof simPositions !== 'undefined' && simPositions) ? simPositions
+                    : JSON.parse(localStorage.getItem('wm_sim_positions') || '[]');
 
   const total = simTrades.length;
   const wins  = simTrades.filter(t=>t.pnl>0).length;
@@ -7341,15 +7362,14 @@ function initSimTrader() {
   if (mc)  { mc.style.padding = '0'; mc.style.overflow = 'hidden'; }
   if (rp)  rp.style.display = 'none';
   if (app) app.classList.add('chart-mode');
-  // Refresh open position P&L every 5 seconds
+  // Global sidebar refresh — runs on ALL tabs (right panel is always visible on desktop)
   clearInterval(simPriceTimer);
   simPriceTimer = setInterval(() => {
-    if (document.getElementById('tab-simtrader')?.classList.contains('active')) {
-      simUpdatePrice();
-      renderSimPositions();
-      simUpdateAccount();
-    }
-  }, 5000);
+    simUpdatePrice();
+    renderSimPositions();
+    simUpdateAccount();
+    updateSidebarStats();
+  }, 2000);
 }
 
 // Mobile nav - add Sim Trader
