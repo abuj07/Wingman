@@ -2623,6 +2623,9 @@ function syncBinanceConnections() {
 }
 
 // ─── PRICE TILE RENDERER ─────────────────────────────────────────────────────
+// Debounce timer: rebuilds the full strip (both scroll copies) at most once per 500ms
+let _stripRebuildTimer = null;
+
 function updatePriceTileFromCache(pairId, price) {
   const lowDpPairs = ['BTCUSD','ETHUSD','SOLUSD','BNBUSD','ADAUSD','DOTUSD','LINKUSD','XRPUSD','US30','SPX500','NAS100','UK100','GER40','JPN225','AUS200','HK50','XAUUSD','XAGUSD','XPTUSD','XCUUSD','USOIL','UKOIL','NATGAS','COFFEE','COCOA','SUGAR','WHEAT','CORN','SOYBEAN','COTTON','LUMBER'];
   const dp = lowDpPairs.includes(pairId) ? 2 : 5;
@@ -2637,6 +2640,7 @@ function updatePriceTileFromCache(pairId, price) {
   const srcBadge = src === 'binance' ? '<span style="font-size:7px;color:#F0B90B;margin-left:3px;">B</span>'
                  : src === 'er'      ? '<span style="font-size:7px;color:#00C8FF;margin-left:3px;">ER</span>'
                  : '';
+  // Update the named tile (first scroll copy) in-place
   const el = document.getElementById('ptile-' + pairId);
   if (el) {
     el.className = `price-tile ${flashClass}`;
@@ -2645,6 +2649,9 @@ function updatePriceTileFromCache(pairId, price) {
       <div class="price-tile-val ${changeClass}">${price.toFixed(dp)}${arrow}</div>`;
     setTimeout(() => el.classList.remove('flash-up','flash-down'), 800);
   }
+  // Debounced full rebuild so the second (unnamed) scroll copy also shows live prices
+  clearTimeout(_stripRebuildTimer);
+  _stripRebuildTimer = setTimeout(() => { if (typeof rebuildPriceStrip === 'function') rebuildPriceStrip(); }, 500);
 }
 
 // Default home page price strip — always show these regardless of scan selection
@@ -3544,6 +3551,14 @@ function launchApp() {
       if (currentChartPair) {
         livePriceCache[currentChartPair] = price;
         priceSourceCache[currentChartPair] = 'tv';
+      }
+
+      // Also update the sim chart instrument if it differs from currentChartPair
+      if (typeof currentSimChartPair !== 'undefined' && currentSimChartPair && currentSimChartPair !== currentChartPair) {
+        livePriceCache[currentSimChartPair] = price;
+        priceSourceCache[currentSimChartPair] = 'tv';
+        // Refresh sim price display
+        if (typeof simUpdatePrice === 'function') simUpdatePrice();
       }
 
       // Debounced sidebar refresh — at most once per second from TV ticks
@@ -7064,7 +7079,15 @@ function simPlaceOrder() {
     ? (simGetPrice(inst) || 0)
     : (limitPx || simGetPrice(inst) || 0);
 
-  if (!price) { toast('⚠️ No live price — ensure Twelve Data or Binance is connected'); return; }
+  if (!price) {
+    toast('⏳ Fetching price for ' + inst + '...');
+    fetchPriceForInstrument(inst).then(() => {
+      simUpdatePrice();
+      if (simGetPrice(inst)) simPlaceOrder();
+      else toast('⚠️ No live price available for ' + inst + '. Try selecting the instrument again.');
+    });
+    return;
+  }
 
   const pipVal = inst === 'XAUUSD' ? 100 : inst === 'BTCUSD' ? 1 : inst === 'ETHUSD' ? 1 :
     ['US30','SPX500','NAS100'].includes(inst) ? 1 : 10;
@@ -7323,14 +7346,59 @@ function simSetTF(btn, tf) {
   simLoadChart();
 }
 
+// Tracks which instrument the sim chart iframe is currently showing
+// so postMessage price ticks from that iframe are routed correctly
+let currentSimChartPair = 'XAUUSD';
+
 function simOnInstrumentChange() {
+  const inst = document.getElementById('sim-instrument')?.value || 'XAUUSD';
+  currentSimChartPair = inst;
   simLoadChart();
   simUpdatePrice();
   simCalcRisk();
+  // Immediately fetch price from API if not already in cache
+  if (!livePriceCache[inst]) {
+    fetchPriceForInstrument(inst).then(() => {
+      simUpdatePrice();
+      simCalcRisk();
+    });
+  }
+}
+
+// Fetch price for a single instrument and populate livePriceCache.
+// Uses Binance WS for crypto (connects if not already), /api/prices for everything else.
+async function fetchPriceForInstrument(inst) {
+  if (!inst) return;
+  // If it's a crypto pair with a Binance symbol, connect the WS — it will populate cache asynchronously
+  if (BINANCE_SYMBOLS[inst]) {
+    connectBinancePair(inst);
+    // Give the WS a moment to deliver the first tick, then fall through to API if still missing
+    await new Promise(r => setTimeout(r, 600));
+    if (livePriceCache[inst]) return;
+  }
+  // Non-crypto (or crypto WS didn't deliver in time): hit /api/prices directly
+  const tdSym = TD_SYMBOLS[inst];
+  if (!tdSym) return;
+  try {
+    const res = await fetch(`/api/prices?symbols=${encodeURIComponent(tdSym)}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const ETF_SCALE = { US30: 100, SPX500: 10, NAS100: 43, UK100: 110, GER40: 50, JPN225: 650, AUS200: 55, HK50: 700 };
+    let price = data[tdSym];
+    if (price && !isNaN(price)) {
+      if (ETF_SCALE[inst]) price = price * ETF_SCALE[inst];
+      livePriceCache[inst] = price;
+      priceSourceCache[inst] = data._source || 'td';
+      updatePriceTileFromCache(inst, price);
+    }
+  } catch (e) {
+    console.warn('fetchPriceForInstrument failed for', inst, e.message);
+  }
 }
 
 function simLoadChart() {
   const inst = document.getElementById('sim-instrument')?.value || 'XAUUSD';
+  currentSimChartPair = inst;
   const sym  = encodeURIComponent(TV_SYMBOLS[inst] || 'OANDA:XAUUSD');
   const frame = document.getElementById('sim-chart-frame');
   if (frame) {
@@ -7358,7 +7426,15 @@ function simConfirmOrder() {
   const leverage = parseFloat(document.getElementById('sim-leverage')?.value) || 100;
   const price    = simGetPrice(inst);
 
-  if (!price) { toast('⚠️ No live price available for this instrument'); return; }
+  if (!price) {
+    toast('⏳ Fetching price for ' + inst + '...');
+    fetchPriceForInstrument(inst).then(() => {
+      simUpdatePrice();
+      if (simGetPrice(inst)) simConfirmOrder();
+      else toast('⚠️ No live price available for ' + inst + '. Try selecting the instrument again.');
+    });
+    return;
+  }
 
   const dp      = ['BTCUSD','ETHUSD','US30','SPX500','NAS100','XAUUSD','XAGUSD'].includes(inst) ? 2 : 5;
   const pipVal  = inst === 'XAUUSD' ? 100 : inst === 'BTCUSD' || inst === 'ETHUSD' ? 1 : ['US30','SPX500','NAS100'].includes(inst) ? 1 : 10;
@@ -7436,6 +7512,12 @@ function initSimTrader() {
   simSetDir('BUY');
   // Load chart on first visit or when switching instruments
   simLoadChart();
+  // Pre-fetch price for the currently selected instrument so the panel isn't blank
+  const initInst = document.getElementById('sim-instrument')?.value || 'XAUUSD';
+  currentSimChartPair = initInst;
+  if (!livePriceCache[initInst]) {
+    fetchPriceForInstrument(initInst).then(() => { simUpdatePrice(); simCalcRisk(); });
+  }
   // Ensure correct CSS for full-height
   const mc  = document.querySelector('.main-content');
   const rp  = document.getElementById('right-panel');
