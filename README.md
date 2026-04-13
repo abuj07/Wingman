@@ -1,12 +1,7 @@
 # Wingman
+Professional-grade financial markets trading intelligence tool — self-hosted, privacy-first, zero subscriptions
 
-**Professional-grade financial markets trading intelligence tool — self-hosted, privacy-first, zero subscriptions**
-
----
-
-**Status:** Live | **Completion:** 70% | **Last updated:** 2026-04-10
-
----
+**Status:** Live | **Completion:** 82% | **Last updated:** 2026-04-13
 
 ## About
 
@@ -46,8 +41,6 @@ Wingman is a self-hosted financial markets trading intelligence tool covering 54
 | Screener | Filter instruments by indicator conditions | 📋 Planned |
 | Export | CSV/PDF export of journal and performance stats | 📋 Planned |
 
-**Status key:** ✅ Built • 🔄 In Progress • 📋 Planned
-
 ## Getting Started
 
 ### Installation
@@ -55,28 +48,28 @@ Wingman is a self-hosted financial markets trading intelligence tool covering 54
 ```bash
 # Clone the repository
 git clone https://github.com/osiabu/Wingman.git
-
-# Navigate to project directory
 cd Wingman
 
-# Install dependencies
+# Install dependencies (if any)
 npm install
 ```
 
 ### Running the Application
 
 ```bash
-# Start development server
+# Start local development server
 npm start
 
-# Build for production
-npm run build
-
-# Deploy to GitHub Pages
-npm run deploy
+# Or simply open index.html in your browser
+open index.html
 ```
 
-Open your browser and navigate to `http://localhost:3000` to access Wingman.
+### Configuration
+
+1. Open the application in your browser
+2. Navigate to Settings
+3. Add your API keys for data providers (stored locally in localStorage)
+4. Configure your preferred instruments and timeframes
 
 ## Roadmap
 
@@ -87,12 +80,12 @@ Open your browser and navigate to `http://localhost:3000` to access Wingman.
 
 ### Phase 2 — Intelligence Layer
 - Virtual trading simulator
-- Trade journal with analytics
+- Comprehensive trade journal
 - AI-powered market commentary
 
 ### Phase 3 — Pro Features
 - Advanced screener capabilities
-- Comprehensive alert system
+- Configurable alerts system
 - Export and reporting tools
 
 ---
