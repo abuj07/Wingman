@@ -108,7 +108,7 @@
 .wc-tool-clear:hover { border-color:var(--red); color:var(--red); }
 .wc-main-container { flex:1; min-height:0; }
 .wc-subpanel-wrap  {
-  height:90px; flex-shrink:0; position:relative;
+  height:130px; flex-shrink:0; position:relative;
   border-top:1px solid transparent;
   border-image:linear-gradient(90deg, #1E1E2800, #1E1E28, #1E1E2800) 1;
 }
