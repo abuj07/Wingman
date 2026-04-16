@@ -383,6 +383,53 @@ function simCloseAll() {
   [...simPositions].forEach(p => simClosePosition(p.id));
 }
 
+// ── TP/SL AUTO-CLOSE CHECK ──────────────────────────────────────────────────
+function simCheckTPSL() {
+  if (!simPositions.length) return;
+  // Iterate backwards so splicing during simClosePosition doesn't skip entries
+  for (var i = simPositions.length - 1; i >= 0; i--) {
+    var p = simPositions[i];
+    var price = simGetPrice(p.inst);
+    if (!price) continue;
+
+    var hit = null;
+    if (p.dir === 'BUY') {
+      if (p.tp && price >= p.tp) hit = 'TP';
+      else if (p.sl && price <= p.sl) hit = 'SL';
+    } else {
+      if (p.tp && price <= p.tp) hit = 'TP';
+      else if (p.sl && price >= p.sl) hit = 'SL';
+    }
+
+    if (hit) {
+      // Close at the TP/SL price, not the current market price
+      var closePrice = hit === 'TP' ? p.tp : p.sl;
+      var pipVal = p.pipVal || 10;
+      var priceDiff = p.dir === 'BUY' ? closePrice - p.entryPrice : p.entryPrice - closePrice;
+      var pnl = priceDiff * pipVal * p.lots;
+
+      var closed = Object.assign({}, p, {
+        closePrice: closePrice, pnl: pnl,
+        closeTime: new Date().toLocaleString(), closedTs: Date.now(),
+        status: 'closed', closeReason: hit
+      });
+      simHistory.unshift(closed);
+      simPositions.splice(i, 1);
+      simAccount.balance += pnl;
+      if (simAccount.balance <= 0) { simAccount.balance = 0; }
+      simSave();
+      simWriteJournalEntry(closed);
+
+      var hitLabel = hit === 'TP' ? 'Take profit' : 'Stop loss';
+      var pnlSign = pnl >= 0 ? '+' : '';
+      toast(hitLabel + ' hit on ' + p.inst + ' ' + p.dir + '. P&L: ' + pnlSign + '$' + pnl.toFixed(2));
+    }
+  }
+  renderSimPositions();
+  simUpdateAccount();
+  updateSidebarStats();
+}
+
 function simUpdateAccount() {
   const openPnl = simPositions.reduce((s, p) => {
     const price = simGetPrice(p.inst) || p.entryPrice;
@@ -841,6 +888,7 @@ function initSimTrader() {
   clearInterval(simPriceTimer);
   simPriceTimer = setInterval(() => {
     simUpdatePrice();
+    simCheckTPSL();
     renderSimPositions();
     simUpdateAccount();
     updateSidebarStats();

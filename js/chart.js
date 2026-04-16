@@ -423,7 +423,13 @@ function createWingmanChart(mainId, rsiId, macdId, volId) {
       volSeries.setData(volArr);
     }
 
-    mainChart.timeScale().fitContent();
+    // Show last ~120 candles like TradingView default zoom
+    var totalBars = sorted.length;
+    if (totalBars > 120) {
+      mainChart.timeScale().setVisibleLogicalRange({ from: totalBars - 120, to: totalBars + 10 });
+    } else {
+      mainChart.timeScale().fitContent();
+    }
   }
 
   // ── addMarker ──

@@ -728,4 +728,3 @@ async function scalpRunScan() {
     }
   }
 }
-}
