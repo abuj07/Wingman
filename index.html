@@ -327,7 +327,12 @@
           document.body.appendChild(s);
         });
       });
-    }, Promise.resolve());
+    }, Promise.resolve()).then(function(){
+      // All modules confirmed loaded — fire the ready callback.
+      // This replaces window.addEventListener('load') in academy.js which is
+      // unreliable: the load event can fire before dynamic modules finish loading.
+      if (typeof __wmReady === 'function') __wmReady();
+    });
   }).catch(function(err){
     console.error('Bootstrap failed:', err);
   });

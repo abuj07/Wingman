@@ -1586,18 +1586,20 @@ function updateAcademyProgress() {
 }
 
 
-window.addEventListener('load', () => {
+// Called by the bootstrap after every JS module is confirmed loaded.
+// Replaces window.addEventListener('load') which is unreliable: on cached
+// loads the load event fires before dynamic modules finish loading, causing
+// ReferenceError on functions like buildInstPanel (defined in markets.js).
+function __wmReady() {
   launchApp(); // Auto-launch — all features free, no API key prompt needed
   buildChecklist();
   buildRules();
   renderTrades();
   updateRisk();
   startClock();
-
-
   renderAlerts();
   if (priceAlerts.filter(a=>!a.triggered).length) startAlertChecking();
-});
+}
 
 function launchApp() {
   // Remove display:none but let CSS media queries control the layout value (grid/flex)
